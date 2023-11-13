@@ -11,7 +11,11 @@ step2:...
 
 
 
+Preheat the oven to 350 degrees F (175 degrees C).
 
+you [cooking_method] [tool] to [temperature]
+
+you [cookign_method] [ingredients]
 -----------------------------------------------------------
 
 - webscrap website for raw recipe
