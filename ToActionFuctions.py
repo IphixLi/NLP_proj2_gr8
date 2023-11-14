@@ -1,26 +1,28 @@
 import spacy
+import re
 nlp = spacy.load('en_core_web_sm')
 spacy_model = spacy.load("en_core_web_lg")
-
-
-
 
 def findTool(ListSentence):
     toolList = []
     for i in range(len(ListSentence)):
         single = findToolSingle(ListSentence[i])
         if single == [] and i > 0:
-            single = findToolSingle(ListSentence[i-1])
+            single = toolList[-1]
         toolList.append(single)
     return toolList
 
 def findMethod(ListSentence):
     methodList = []
     for i in ListSentence:
-        single1 = findAllVerbsSingle(i)
+        single1 = findAllVerbSingle(i)
         single2 = findMethodSingle(i)
         single1.extend(single2)
-        methodList.append(list(set(single1)))
+        single =list(set(single1)) 
+        for j in single:
+            if j in tool_method_list["bad_verb"]:
+                single.remove(j)
+        methodList.append(single)
     return methodList
 
 
@@ -32,7 +34,7 @@ def findToolSingle(sentence):
     toolList = []
     sentence = sentence.lower()
     for i in tool_method_list["cooking_tools"]:
-        if i.lower() in sentence:
+        if i in sentence:
             toolList.append(i)
     return toolList
 
@@ -42,18 +44,18 @@ def findMethodSingle(sentence):
     methodllist = []
     sentence = sentence.lower()
     for i in tool_method_list["cooking_methods"]:
-        if i.lower() in sentence:
+        if match_whole_word(sentence, i):
             methodllist.append(i)
     return methodllist
 
 
 #way 1 to find verb
-def findAllVerbsSingle(sentence):
+def findAllVerbSingle(sentence):
     doc = nlp(sentence)
     verbs = []
     for token in doc:
         if token.pos_ == "VERB" and not token.text.endswith("ed"):
-            verbs.append(token.text)
+            verbs.append(token.lemma_)
     return list(set(verbs))
 
 
@@ -76,6 +78,11 @@ def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> [spacy.tokens.Token
             return None
         cur_token = cur_token.head
     return cur_token.head
+
+def match_whole_word(text, word):
+    # The pattern will look for the word surrounded by word boundaries
+    pattern = r'\b' + re.escape(word) + r'(|ing)\b'
+    return re.search(pattern, text) is not None
 
 
 
@@ -125,8 +132,17 @@ tool_method_list = {
     "mandoline slicer",
     "garlic press",
     "seafood crackers",
-    "refrigerator"
+    "refrigerator",
+    "grill",
+    "twine" 
   ],
+    "bad_verb":[
+        "have",
+        "let",
+        "use",
+        "depend",
+        "approximate"
+    ],
       "cooking_methods": [
     "bake",
     "roast",
@@ -166,6 +182,7 @@ tool_method_list = {
     "macerate",
     "stir",
     "heat",
-    "cook"
+    "cook",
+    "pour"
   ]
 }
