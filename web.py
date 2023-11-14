@@ -35,4 +35,8 @@ def get_raw_steps_from_soup(soup: BeautifulSoup) -> List[Tag]:
 
 if __name__ == "__main__":
     url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
-    print(get_raw_steps_from_soup(url))
+    soup, title=get_soup_from_url(url)
+    res=get_raw_ingredients_from_soup(soup)
+    for val in res:
+        print(val.get_text().strip())
+        print()

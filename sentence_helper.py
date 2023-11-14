@@ -23,3 +23,4 @@ def raw_steps_to_list_sentences(raw_steps: List[Tag]) -> List[List[str]]:
         step_sentences = split_into_sentences(step.text)
         sentences_list.append([add_punctuation(sentence) for sentence in step_sentences])
     return sentences_list
+

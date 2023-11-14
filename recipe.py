@@ -5,7 +5,7 @@ from bs4.element import Tag
 from web import get_soup_from_url, get_raw_ingredients_from_soup, get_raw_steps_from_soup
 from sentence_helper import raw_steps_to_list_sentences
 
-from ingredient import parse_ingredients
+from ingredient import parse_ingredients, get_ingredients_names
 from step import parse_steps, parse_methods, parse_tools
 
 class Recipe:
@@ -14,17 +14,16 @@ class Recipe:
         raw_ingredients = get_raw_ingredients_from_soup(soup)
         raw_steps = get_raw_steps_from_soup(soup)
         sentences_list = raw_steps_to_list_sentences(raw_steps) # each step is a list of sentences
-        
         self.ingredients = parse_ingredients(raw_ingredients)
-        self.ingredients_names = self.get_ingredients_names()
+        self.ingredients_names = get_ingredients_names(self.ingredients)
         self.steps = parse_steps(sentences_list)
+        # for testing purposes
+        self.temp_steps=sentences_list
+
         self.tools = parse_tools(self.steps)
         self.methods = parse_methods(self.steps)
         self.num_actions = sum([len(sentences) for sentences in sentences_list])
         self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
-    
-    def get_ingredients_names(self) -> List[str]:
-        return [ingredient.name for ingredient in self.ingredients]
         
     def print_abstract(self):
         print(f"Recipe name: {self.recipe_name}")
@@ -58,5 +57,8 @@ if __name__ == "__main__":
     recipe = Recipe(url)
     print(recipe.tools)
     print(recipe.methods)
-    print(recipe.ingredients)
-    print(recipe.steps)
+    # print(recipe.ingredients)
+    print(recipe.temp_steps)
+
+    res=recipe.ingredients_names
+    print(res)

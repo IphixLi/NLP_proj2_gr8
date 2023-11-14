@@ -8,8 +8,21 @@ class Ingredient:
     def __init__(self, ingredient: Tag) -> None:
         self.string = ingredient.text
         self.quantity, remaining_str = self.extract_quantity(ingredient)
+        self.remaining_quantity=self.quantity
         self.unit = self.extract_unit(ingredient, remaining_str)
         self.name, self.preparation = self.extract_name_preparation(ingredient)
+
+    def update_remaining_quantity(self,new_quantity: float) -> None:
+        self.remaining_quantity=new_quantity
+
+    def update_unit(self,new_unit: str) -> None:
+        self.unit=new_unit
+
+    def update_name(self,new_name: str) -> None:
+        self.name=new_name
+
+    def update_preparation(self,new_preparation: str) -> None:
+        self.preparation=new_preparation       
         
     def extract_quantity(self, ingredient: Tag) -> Tuple[float, str]:
         quantity_tag = ingredient.find("span", {"data-ingredient-quantity": "true"})
@@ -74,3 +87,7 @@ def parse_ingredients(raw_ingredients: List[Tag]) -> List[Ingredient]:
         ingredients.append(Ingredient(ingredient))
         
     return ingredients
+
+def get_ingredients_names(ingredients:List[Ingredient]) -> List[str]:
+    return [ingredient.name for ingredient in ingredients]
+    
