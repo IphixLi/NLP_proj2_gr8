@@ -16,7 +16,7 @@ class Recipe:
         sentences_list = raw_steps_to_list_sentences(raw_steps) # each step is a list of sentences
         self.ingredients = parse_ingredients(raw_ingredients)
         self.ingredients_names = get_ingredients_names(self.ingredients)
-        self.steps = parse_steps(sentences_list)
+        self.steps = parse_steps(sentences_list, self.ingredients_names)
         # for testing purposes
         self.temp_steps=sentences_list
 

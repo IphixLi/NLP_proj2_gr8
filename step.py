@@ -5,7 +5,6 @@ from fuzzywuzzy import process
 nlp = spacy.load("en_core_web_sm")
 
 from ingredient import Ingredient
-from ingredient import parse_ingredients, get_ingredients_names
 
 # TODO: modify types (using self-defined types)
 DefineTemp = int
@@ -19,14 +18,7 @@ IngredientsType = Union[List[DefineIngrdnt], None]
 TimeType = Union[DefineTime, None]
 MethodsType = Union[List[DefineMethod], None]
 ToolsType = Union[List[DefineTool], None]
-from web import get_soup_from_url, get_raw_ingredients_from_soup
 
-
-url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
-soup, recipe_name = get_soup_from_url(url)
-raw_ingredients = get_raw_ingredients_from_soup(soup)
-ingredients = parse_ingredients(raw_ingredients)
-ingredients_names = get_ingredients_names(ingredients)
 
 # TODO: will import these functions from other files
 def to_temperature(sentences: List[str]) -> List[TemperatureType]:
@@ -93,7 +85,7 @@ class Action:
         self.tools = tools
 
 class Step:
-    def __init__(self, sentences: List[str], ingredients:List[str]) -> None:
+    def __init__(self, sentences: List[str], ingredients_names: List[str]) -> None:
         self.actions: List[Action] = []
         
         temperature_list = to_temperature(sentences)
@@ -109,7 +101,7 @@ class Step:
         self.methods = collect_methods(method_list)
 
 
-def parse_steps(sentences_list: List[List[str]]) -> List[Step]:
+def parse_steps(sentences_list: List[List[str]], ingredients_names: List[str]) -> List[Step]:
     steps = []
     for sentences in sentences_list:
         steps.append(Step(sentences, ingredients_names))
