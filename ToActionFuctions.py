@@ -2,8 +2,39 @@ import spacy
 nlp = spacy.load('en_core_web_sm')
 spacy_model = spacy.load("en_core_web_lg")
 
+
+
+
+def findTool(ListSentence):
+    toolList = []
+    for i in range(len(ListSentence)):
+        single = findToolSingle(ListSentence[i])
+        if single == [] and i > 0:
+            single = findToolSingle(ListSentence[i-1])
+        toolList.append(single)
+    return toolList
+
+def findMethod(ListSentence):
+    methodList = []
+    for i in ListSentence:
+        single = findAllVerbsSingle(i)
+        methodList.append(single)
+    return methodList
+
+def findPrimeMethod(ListSentence):
+    primeMethod = []
+    for i in ListSentence:
+        single = findMethodSingle(i)
+        primeMethod.extend(single)
+    return list(set(primeMethod))
+
+
+
+#===================================================
+# here is the supporting functions for above
+#===================================================
 #find tool
-def findTool(sentence):
+def findToolSingle(sentence):
     toolList = []
     sentence = sentence.lower()
     for i in tool_method_list["cooking_tools"]:
@@ -13,7 +44,7 @@ def findTool(sentence):
 
 
 #find primary cooking method
-def findMethod(sentence):
+def findMethodSingle(sentence):
     methodllist = []
     sentence = sentence.lower()
     for i in tool_method_list["cooking_methods"]:
@@ -23,17 +54,17 @@ def findMethod(sentence):
 
 
 #way 1 to find verb
-def findAllVerbs(sentence):
+def findAllVerbsSingle(sentence):
     doc = nlp(sentence)
     verbs = []
     for token in doc:
         if token.pos_ == "VERB" and not token.text.endswith("ed"):
             verbs.append(token.text)
-    return verbs
+    return list(set(verbs))
 
 
 # way 2 to find verb
-def findRelationVerb(sentence):
+def findRelationVerbSingle(sentence):
     verblist = []
     spacy_output = spacy_model(sentence)
     for n in spacy_output.noun_chunks:
@@ -44,7 +75,6 @@ def findRelationVerb(sentence):
             verblist.append(verb)
     return list(set(verblist))
 def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> [spacy.tokens.Token, None]:
-    """Find the most related verb of a noun chunk (the closest ancestor that is a verb)."""
     cur_token = noun_chunk.root
 
     while cur_token.head.pos_ != "VERB":
@@ -52,6 +82,8 @@ def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> [spacy.tokens.Token
             return None
         cur_token = cur_token.head
     return cur_token.head
+
+
 
 #keywordlist
 tool_method_list = {
