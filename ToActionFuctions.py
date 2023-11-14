@@ -6,7 +6,7 @@ spacy_model = spacy.load("en_core_web_lg")
 def findTool(ListSentence):
     toolList = []
     for i in range(len(ListSentence)):
-        single = findToolSingle(ListSentence[i])
+        single = findToolSingle(imperative_to_normal(ListSentence[i]))
         if single == [] and i > 0:
             single = toolList[-1]
         toolList.append(single)
@@ -15,8 +15,8 @@ def findTool(ListSentence):
 def findMethod(ListSentence):
     methodList = []
     for i in ListSentence:
-        single1 = findAllVerbSingle(i)
-        single2 = findMethodSingle(i)
+        single1 = findAllVerbSingle(imperative_to_normal(i))
+        single2 = findMethodSingle(imperative_to_normal(i))
         single1.extend(single2)
         single =list(set(single1)) 
         for j in single:
@@ -24,6 +24,31 @@ def findMethod(ListSentence):
                 single.remove(j)
         methodList.append(single)
     return methodList
+
+
+def answerVague(sentence):
+    RelationList = findRelationVerbSingle(imperative_to_normal(sen))
+    temp = []
+    temp2 = []
+    returnList = []
+    for i in RelationList:
+        if str(i[0]) not in temp:
+            if temp != []:
+                temp2.append(temp)
+                temp = []
+            temp.append(str(i[0]))
+            temp.append(str(i[1]))
+        else:
+            temp.append(str(i[1]))
+
+    temp2.append(temp)
+
+    for item in temp2:
+        index1 = sen.index(item[0])
+        index2 = sen.index(item[-1])
+        returnList.append(sen[index1:index2+len(item[-1])])
+        
+    return returnList
 
 
 #===================================================
@@ -49,7 +74,7 @@ def findMethodSingle(sentence):
     return methodllist
 
 
-#way 1 to find verb
+#find verb
 def findAllVerbSingle(sentence):
     doc = nlp(sentence)
     verbs = []
@@ -59,7 +84,7 @@ def findAllVerbSingle(sentence):
     return list(set(verbs))
 
 
-# way 2 to find verb
+#find verb noun relation
 def findRelationVerbSingle(sentence):
     verblist = []
     spacy_output = spacy_model(sentence)
@@ -68,8 +93,8 @@ def findRelationVerbSingle(sentence):
             continue
         verb = find_most_related_verb(n)
         if verb is not None:
-            verblist.append(verb)
-    return list(set(verblist))
+            verblist.append([verb,n])
+    return verblist
 def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> [spacy.tokens.Token, None]:
     cur_token = noun_chunk.root
 
@@ -79,10 +104,24 @@ def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> [spacy.tokens.Token
         cur_token = cur_token.head
     return cur_token.head
 
+#match
 def match_whole_word(text, word):
     # The pattern will look for the word surrounded by word boundaries
     pattern = r'\b' + re.escape(word) + r'(|ing)\b'
     return re.search(pattern, text) is not None
+
+#normalization
+def imperative_to_normal(sentence: str) -> str:
+    try:
+        i = sentence.index(",")
+        if " " not in sentence[:i]:
+            sentence = sentence[i+2 :]
+    except Exception:
+        pass
+    if sentence.endswith("."):
+        return f"You {sentence[0].lower()}{sentence[1:]}"
+    else:
+        return f"You {sentence[0].lower()}{sentence[1:]}."
 
 
 
@@ -141,7 +180,8 @@ tool_method_list = {
         "let",
         "use",
         "depend",
-        "approximate"
+        "approximate",
+        "continue"
     ],
       "cooking_methods": [
     "bake",
