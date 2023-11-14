@@ -1,15 +1,16 @@
-from recipe import Recipe
 from enum import Enum
 from typing import Callable
+
+from recipe import Recipe
+from handle_questions import handle_specific_question, handle_fuzzy_what_questions
 
 class State(Enum):
     QUIT = -1
     RESTART = 0
     INPUT_URL = 1
     ABSTRACT = 2
-    INGREDIENTS = 3
-    ACTION = 4
-    FINISH = 5
+    ACTION = 3
+    FINISH = 4
     
 class RecipeStateMachine:
     def __init__(self) -> None:
@@ -33,7 +34,6 @@ class RecipeStateMachine:
         state_actions = {
             State.INPUT_URL: self.input_url,
             State.ABSTRACT: self.abstract,
-            State.INGREDIENTS: self.ingredients,
             State.ACTION: self.action,
             State.FINISH: self.finish,
             State.RESTART: self.restart,
@@ -153,13 +153,6 @@ class RecipeStateMachine:
         """
         self.state = State.ABSTRACT
         return True
-    
-    def jump_to_ingredients(self) -> bool:
-        """
-        Jump to the ingredients state. Returns True to confirm the jump.
-        """
-        self.state = State.INGREDIENTS
-        return True
 
 
     def abstract(self) -> None:
@@ -171,7 +164,7 @@ class RecipeStateMachine:
         Prints the abstract of the recipe.
         """
         print("\nRecipe Overview:")
-        print("----------------")
+        print("-------------------")
         self.recipe.print_abstract()
     
     def help_abstract(self) -> None:
@@ -179,11 +172,13 @@ class RecipeStateMachine:
         Gives the user options for what to do next after printing the abstract.
         """
         print()
-        print("What would you like to do next?")
-        print(" - Press 'i' to list the ingredients in detail.")
-        print(" - Press 'd' to start the directions.")
+        print("You are at the overview stage of the recipe. What would you like to do next?")
+        print(" - Enter 'i' to list the ingredients in detail.")
+        print(" - Enter 's' to list all the steps.")
+        print(" - Enter 'd' to start the directions.")
         print(" - Enter 'r' to restart with a new recipe.")
         print(" - Enter 'q' to quit.")
+        print(" - Enter 'h' to see this help message again.")
     
     def input_abstract(self) -> None:
         """
@@ -192,13 +187,15 @@ class RecipeStateMachine:
         self.help_abstract()
         while True:
             print()
-            user_input = input("Your choice: ").strip().lower()
+            user_input = input("Your choice (enter 'h' for help): ").strip().lower()
 
             input_actions = {
-                'i': lambda: self.jump_to_ingredients(),
+                'i': lambda: self.print_ingredients(),
+                's': lambda: self.list_actions(),
                 'd': lambda: self.jump_to_first_action(),
                 'r': lambda: self.confirm_input(self.jump_to_restart),
-                'q': lambda: self.confirm_input(self.jump_to_quit)
+                'q': lambda: self.confirm_input(self.jump_to_quit),
+                'h': lambda: self.help_abstract()
             }
 
             if user_input in input_actions:
@@ -208,48 +205,19 @@ class RecipeStateMachine:
             else:
                 print("Invalid input. Please enter 'i' for ingredients, 'd' for directions, 'r' to restart, or 'q' to quit.")
     
-    
-    def ingredients(self) -> None:
-        self.print_ingredients()
-        self.input_ingredients()
+    def list_actions(self) -> None:
+        """
+        Lists all the actions in the recipe.
+        """
+        print("\nRecipe Steps:")
+        print("-------------------")
+        self.recipe.list_actions()
     
     def print_ingredients(self) -> None:
         """Prints the ingredients of the recipe."""
         print("\nRecipe Ingredients:")
         print("-------------------")
         self.recipe.print_ingredients()
-        
-    def help_ingredients(self) -> None:
-        """
-        Gives the user options for what to do next after printing the ingredients.
-        """
-        print()
-        print("What would you like to do next?")
-        print(" - Press 'd' to start the directions.")
-        print(" - Enter 'r' to restart with a new recipe.")
-        print(" - Enter 'q' to quit.")
-    
-    def input_ingredients(self) -> None:
-        """
-        Prompts the user for input after printing the ingredients.
-        """
-        self.help_ingredients()
-        while True:
-            print()
-            user_input = input("Your choice: ").strip().lower()
-            
-            input_actions = {
-                'd': lambda: self.jump_to_first_action(),
-                'r': lambda: self.confirm_input(self.jump_to_restart),
-                'q': lambda: self.confirm_input(self.jump_to_quit)
-            }
-            
-            if user_input in input_actions:
-                confirm = input_actions[user_input]()
-                if confirm:
-                    return
-            else:
-                print("Invalid input. Please enter 'd' for directions, 'r' to restart, or 'q' to quit.")
     
     def action(self) -> None:
         self.print_action()
@@ -267,8 +235,10 @@ class RecipeStateMachine:
         """
         print()
         print(f"You are at step {self.current_action + 1} / {self.recipe.num_actions} of the recipe. What would you like to do next?")
-        print(" - Press 'n' to proceed to the next step.")
+        print(" - Enter 'n' to proceed to the next step.")
         print(" - Enter 'p' to go back to the previous step.")
+        print(" - Enter 'rpt' to repeat the current step.")
+        # print(" - Enter 'query' to ask a question about the current step.")
         print(" - Enter 'i' to list the ingredients in detail.")
         print(" - Enter 'o' to list the overview of the recipe.")
         print(" - Enter 'd' to restart the directions.")
@@ -289,12 +259,14 @@ class RecipeStateMachine:
             input_actions = {
                 'n': lambda: self.jump_to_next_action(),
                 'p': lambda: self.jump_to_prev_action(),
-                'i': lambda: self.print_ingredients(),  # no need to confirm
-                'o': lambda: self.print_abstract(),     # no need to confirm
+                'i': lambda: self.print_ingredients(),
+                'o': lambda: self.print_abstract(),
                 'd': lambda: self.jump_to_first_action(),
                 'r': lambda: self.confirm_input(self.jump_to_restart),
                 'q': lambda: self.confirm_input(self.jump_to_quit),
                 'h': lambda: self.help_action(),
+                'rpt': lambda: True, # Do nothing
+                # 'query': lambda: self.handle_query(),
             }
             
             if user_input in input_actions:
@@ -307,6 +279,18 @@ class RecipeStateMachine:
                     return
             else:
                 print("Invalid input. Enter 'h' for help.")
+    
+    def handle_query(self) -> None:
+        print()
+        
+        print("Entering query mode... You can ask a question about the current step.")
+        self.recipe.print_action(self.current_action)
+        
+        print()
+        print("What would you like to ask?")
+        print(" - Enter 'q' to quit query mode.")
+        print(" - Enter 'h' to see this help message again.")
+        print(" - Enter 'what is .../ How to ...' to ask a question.")
     
     def finish(self) -> None:
         self.print_finish()

@@ -5,6 +5,7 @@ from fuzzywuzzy import process
 nlp = spacy.load("en_core_web_sm")
 
 from ingredient import Ingredient
+from ToActionFuctions import findTool, findMethod
 
 # TODO: modify types (using self-defined types)
 DefineTemp = int
@@ -51,10 +52,10 @@ def to_time(sentences: List[str]) -> List[TimeType]:
     return [ [] for _ in sentences ]
 
 def to_method(sentences: List[str]) -> List[MethodsType]:
-    return [ [] for _ in sentences ]
+    return findMethod(sentences)
 
 def to_tools(sentences: List[str]) -> List[ToolsType]:
-    return [ [] for _ in sentences ]
+    return findTool(sentences)
 
 
 
