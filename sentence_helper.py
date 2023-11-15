@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from bs4.element import Tag
 
 
@@ -23,4 +23,11 @@ def raw_steps_to_list_sentences(raw_steps: List[Tag]) -> List[List[str]]:
         step_sentences = split_into_sentences(step.text)
         sentences_list.append([add_punctuation(sentence) for sentence in step_sentences])
     return sentences_list
+
+def celsius_to_fahren(temperature:float)->Union[float, None]:
+    try:
+        convert_to_celsius=(float(temperature)*9/5)+32
+    except:
+        return None
+    return convert_to_celsius
 

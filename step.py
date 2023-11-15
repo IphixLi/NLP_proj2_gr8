@@ -1,16 +1,17 @@
-from typing import List, Union
+from typing import List, Union, Tuple
 import re
 import spacy
 from fuzzywuzzy import process
 nlp = spacy.load("en_core_web_sm")
 
+
 from ingredient import Ingredient
 from ingredient import parse_ingredients, get_ingredients_names
 
 # TODO: modify types (using self-defined types)
-DefineTemp = int
+DefineTemp = Tuple[str, str]
 DefineIngrdnt = Ingredient
-DefineTime = int
+DefineTime = Tuple[float, float, str, int]
 DefineMethod = str
 DefineTool = str
 
@@ -20,17 +21,56 @@ TimeType = Union[DefineTime, None]
 MethodsType = Union[List[DefineMethod], None]
 ToolsType = Union[List[DefineTool], None]
 from web import get_soup_from_url, get_raw_ingredients_from_soup
+from sentence_helper import celsius_to_fahren
 
 
+# url = "https://www.allrecipes.com/recipe/217331/goan-pork-vindaloo/"
 url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
 soup, recipe_name = get_soup_from_url(url)
 raw_ingredients = get_raw_ingredients_from_soup(soup)
 ingredients = parse_ingredients(raw_ingredients)
 ingredients_names = get_ingredients_names(ingredients)
 
+def custom_tokenizer(nlp):
+    infix_re = spacy.util.compile_infix_regex(nlp.Defaults.infixes + [r'(?<=[0-9])-'])
+    return spacy.tokenizer.Tokenizer(nlp.vocab, infix_finditer=infix_re.finditer)
+
+nlp.tokenizer = custom_tokenizer(nlp)
+
 # TODO: will import these functions from other files
-def to_temperature(sentences: List[str]) -> List[TemperatureType]:
-    return [ [] for _ in sentences ]
+def to_temperature(sentences: List[str]) -> TemperatureType:
+    temperatures=[]
+    temperature=[]
+    for sentence in sentences:
+        tokens = sentence.split()  # Split the sentence into tokens
+        # print("tokens: ", tokens)
+        for i in range(len(tokens) - 1):
+            token = tokens[i]
+            next_token = tokens[i + 1]
+
+            if token.isnumeric():
+                if next_token.lower() in ["degrees", "degree", "°"]:
+                    temperatures.append((token, tokens[i+2]))
+            else:
+                if (
+                    token.lower() in ["low", "medium", "medium-high", "high"]
+                    and  "heat" in next_token.lower()
+                ):
+                    temperatures.append((token, "heat"))
+
+    print(temperatures)
+    for temp, unit in temperatures:
+        if unit.strip() in ["C","c","Celsius","celsius"]:
+            converted_temp=celsius_to_fahren(float(temp))
+            temperature=[str(converted_temp), "F"]
+        elif unit.strip() in ["F","f","Fahrenheit","fahrenheit"]:
+            temperature=[str(temp), "F"]
+        else:
+            temperature=[temp, unit]
+    
+    print("temperature: ", temperature)
+    print("-------------")
+    return tuple(temperature) if temperature else None
 
 def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[IngredientsType]:
     matched_ingredients = []
@@ -56,7 +96,22 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
     return [ [] for _ in sentences ]
 
 def to_time(sentences: List[str]) -> List[TimeType]:
-    return [ [] for _ in sentences ]
+    times=[]
+    for idx, sentence in enumerate(sentences):
+        pattern = r'\b(\d+)(?:\D*?(?:to|-)\D*?(\d+))?\D*?(minutes?|mins?|hours?|hrs?|seconds?|secs?|days?)\b'
+        matches = re.findall(pattern, sentence)
+        print("matches: ", matches)
+        if len(matches)>0:
+            low, high=matches[0][0], matches[0][1]
+            if len(matches[0][1])==0:
+                high=matches[0][0]
+            times.append((low,high, matches[0][2]))
+        else:
+            times.append(None)
+
+    print("Extracted Time: ", times)
+    print("----")
+    return times
 
 def to_method(sentences: List[str]) -> List[MethodsType]:
     return [ [] for _ in sentences ]
@@ -96,14 +151,14 @@ class Step:
     def __init__(self, sentences: List[str], ingredients:List[str]) -> None:
         self.actions: List[Action] = []
         
-        temperature_list = to_temperature(sentences)
+        temperature_value = to_temperature(sentences)
         ingredients_list = to_ingredients(sentences, ingredients_names)
         time_list = to_time(sentences)
         method_list = to_method(sentences)
         tools_list = to_tools(sentences)
         
         for i in range(len(sentences)):
-            self.actions.append(Action(sentences[i], temperature_list[i], ingredients_list[i], time_list[i],
+            self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list,
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)
         self.methods = collect_methods(method_list)

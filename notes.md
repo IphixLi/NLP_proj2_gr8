@@ -10,15 +10,6 @@ Fill pastry shell with sliced bananas; pour pudding mixture on top to cover.
 Bake in the preheated oven until filling sets, 12 to 15 minutes. Let pie cool completely on a wire rack, then chill pie in the refrigerator for at least 1 hour before serving.
 
 
----------
-Unique Matched Ingredients: ['milk', 'all-purpose flour', 'salt', 'white sugar']
----------
-Unique Matched Ingredients: ['milk', 'egg yolks', 'butter', 'vanilla extract']
----------
-Unique Matched Ingredients: ['bananas', 'baked pastry shell']
-
-
-
 
 main queue
 
