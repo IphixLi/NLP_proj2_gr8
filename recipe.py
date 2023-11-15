@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, Tuple
 from bs4.element import Tag
 
 
@@ -16,7 +16,7 @@ class Recipe:
         sentences_list = raw_steps_to_list_sentences(raw_steps) # each step is a list of sentences
         self.ingredients = parse_ingredients(raw_ingredients)
         self.ingredients_names = get_ingredients_names(self.ingredients)
-        self.steps = parse_steps(sentences_list)
+        self.steps = parse_steps(sentences_list, self.ingredients_names)
         # for testing purposes
         self.temp_steps=sentences_list
 
@@ -25,7 +25,7 @@ class Recipe:
         self.num_actions = sum([len(sentences) for sentences in sentences_list])
         self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
         
-    def print_abstract(self):
+    def print_abstract(self) -> None:
         print(f"Recipe name: {self.recipe_name}")
         print(f"Number of actions: {self.num_actions}")
         print(f"Ingredients: {', '.join(self.ingredients_names)}")
@@ -33,21 +33,26 @@ class Recipe:
         print(f"Methods: {', '.join(self.methods)}")
         print(self.action_idx_to_idx_tuple)
     
-    def print_ingredients(self):
+    def print_ingredients(self) -> None:
         for ingredient in self.ingredients:
             print(ingredient)
     
-    def make_idx_tuple_dict(self):
+    def make_idx_tuple_dict(self) -> Dict[int, Tuple[int, int]]:
         idx_tuple_dict = {}
         for step_idx, step in enumerate(self.steps):
             for sentence_idx, _ in enumerate(step.actions):
                 idx_tuple_dict[len(idx_tuple_dict)] = (step_idx, sentence_idx)
         return idx_tuple_dict
     
-    def print_action(self, action_index: int):
+    def print_action(self, action_index: int) -> None:
         # TODO: print more info
         step_idx, cur_action_idx = self.action_idx_to_idx_tuple[action_index]
         print(self.steps[step_idx].actions[cur_action_idx].sentence)
+    
+    def list_actions(self) -> None:
+        for i, index_tuple in enumerate(self.action_idx_to_idx_tuple.values()):
+            step_idx, cur_action_idx = index_tuple
+            print(f"Step {i+1}: {self.steps[step_idx].actions[cur_action_idx].sentence}")
     
     
 if __name__ == "__main__":

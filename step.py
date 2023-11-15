@@ -6,7 +6,7 @@ nlp = spacy.load("en_core_web_sm")
 
 
 from ingredient import Ingredient
-from ingredient import parse_ingredients, get_ingredients_names
+from ToActionFuctions import findTool, findMethod
 
 # TODO: modify types (using self-defined types)
 DefineTemp = Tuple[str, str]
@@ -114,10 +114,10 @@ def to_time(sentences: List[str]) -> List[TimeType]:
     return times
 
 def to_method(sentences: List[str]) -> List[MethodsType]:
-    return [ [] for _ in sentences ]
+    return findMethod(sentences)
 
 def to_tools(sentences: List[str]) -> List[ToolsType]:
-    return [ [] for _ in sentences ]
+    return findTool(sentences)
 
 
 
@@ -148,7 +148,7 @@ class Action:
         self.tools = tools
 
 class Step:
-    def __init__(self, sentences: List[str], ingredients:List[str]) -> None:
+    def __init__(self, sentences: List[str], ingredients_names: List[str]) -> None:
         self.actions: List[Action] = []
         
         temperature_value = to_temperature(sentences)
@@ -164,7 +164,7 @@ class Step:
         self.methods = collect_methods(method_list)
 
 
-def parse_steps(sentences_list: List[List[str]]) -> List[Step]:
+def parse_steps(sentences_list: List[List[str]], ingredients_names: List[str]) -> List[Step]:
     steps = []
     for sentences in sentences_list:
         steps.append(Step(sentences, ingredients_names))
