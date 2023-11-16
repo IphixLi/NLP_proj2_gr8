@@ -62,6 +62,7 @@ def to_temperature(sentences: List[str]) -> TemperatureType:
     return tuple(temperature) if temperature else None
 
 def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[IngredientsType]:
+    # Yifan: I think we should have list of list of ingredients as output?
     matched_ingredients = []
 
     for sentence in sentences:
