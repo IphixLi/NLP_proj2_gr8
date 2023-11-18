@@ -65,6 +65,7 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
     matched_ingredients = []
 
     for sentence in sentences:
+        sentence_match=[]
         doc = nlp(sentence.lower())
         # Extract noun phrases (potential ingredients)
         potential_ingredients = [chunk.text.strip() for chunk in doc if chunk.text.strip()]
@@ -73,16 +74,16 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
                 if str(potential).strip():
                     match, score = process.extractOne(str(potential), ingredients)
                     if score >= 80:
-                        matched_ingredients.append(match)
+                        sentence_match.append(match)
             except TypeError:
                 pass
+        unique_matched_ingredients = list(set(sentence_match))
+        matched_ingredients.append(unique_matched_ingredients)
 
-    unique_matched_ingredients = list(set(matched_ingredients))
-    print("ingr: ",unique_matched_ingredients)
+    print("ingr: ", matched_ingredients)
     print(sentences)
     print("---------------")
-    return unique_matched_ingredients
-
+    return matched_ingredients
 
 def to_time(sentences: List[str]) -> List[TimeType]:
     times=[]
@@ -144,8 +145,8 @@ class Step:
         tools_list = to_tools(sentences)
 
         for i in range(len(sentences)):
-            # print("res: ", sentences[i],temperature_value,ingredients_list,time_list[i],method_list[i],tools_list[i])
-            self.actions.append(Action(sentences[i], temperature_value, ingredients_list, time_list[i],
+            print("res: ", sentences[i],temperature_value,ingredients_list[i],time_list[i],method_list[i],tools_list[i])
+            self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)
         self.methods = collect_methods(method_list)

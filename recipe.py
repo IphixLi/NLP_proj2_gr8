@@ -57,10 +57,10 @@ class Recipe:
     
 if __name__ == "__main__":
     # url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
-    # url = "https://www.allrecipes.com/air-fryer-ham-and-cheese-wraps-recipe-8365118"
-    url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
+    url = "https://www.allrecipes.com/air-fryer-ham-and-cheese-wraps-recipe-8365118"
+    # url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
     # url = "https://www.allrecipes.com/recipe/217331/goan-pork-vindaloo/"
     recipe = Recipe(url)
     # print(recipe.tools)
     # print(recipe.methods)
-    # print(recipe.ingredients)
+    print(recipe.ingredients_names)
