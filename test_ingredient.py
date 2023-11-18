@@ -1,6 +1,8 @@
 from ingredient import parse_ingredients
 from web import get_soup_from_url, get_raw_ingredients_from_soup
 
+from ToActionFuctions import answerVague
+
 def main():
     # url = "https://www.allrecipes.com/air-fryer-ham-and-cheese-wraps-recipe-8365118"
     
@@ -14,13 +16,15 @@ def main():
     # url = "https://www.allrecipes.com/recipe/222979/chicken-milanese/"
     
     
-    url = "https://www.allrecipes.com/recipe/228823/quick-beef-stir-fry/"
+    # url = "https://www.allrecipes.com/recipe/228823/quick-beef-stir-fry/"
     
-    soup, _ = get_soup_from_url(url)
-    raw_ingredients = get_raw_ingredients_from_soup(soup)
-    ingredients = parse_ingredients(raw_ingredients)
-    for ingredient in ingredients:
-        print(repr(ingredient))
+    # soup, _ = get_soup_from_url(url)
+    # raw_ingredients = get_raw_ingredients_from_soup(soup)
+    # ingredients = parse_ingredients(raw_ingredients)
+    # for ingredient in ingredients:
+    #     print(repr(ingredient))
+    
+    print(answerVague("Preheat the oven to 350 degrees F (175 degrees C)."))
 
 if __name__ == "__main__":
     main()

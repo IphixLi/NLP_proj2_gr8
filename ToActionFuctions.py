@@ -4,6 +4,9 @@ nlp = spacy.load('en_core_web_sm')
 spacy_model = spacy.load("en_core_web_lg")
 
 def findTool(ListSentence):
+    # Yifan: 
+    # - Combine sugar, flour, and salt in a saucepan. (got "saucepan" and "pan")
+    # - Preheat an air fryer to 400 degrees F (200 degrees C) according to manufacturer’s instructions. ([])
     toolList = []
     for i in range(len(ListSentence)):
         single = findToolSingle(imperative_to_normal(ListSentence[i]))
@@ -13,6 +16,9 @@ def findTool(ListSentence):
     return toolList
 
 def findMethod(ListSentence):
+    # Yifan:
+    # - Roll 1 of the opposing edges around the filling creating a burrito. (['create', 'roll', 'oppose'])
+    # - Preheat an air fryer to 400 degrees F (200 degrees C) according to manufacturer’s instructions. (['preheat', 'accord'])
     methodList = []
     for i in ListSentence:
         single1 = findAllVerbSingle(imperative_to_normal(i))
@@ -26,29 +32,33 @@ def findMethod(ListSentence):
     return methodList
 
 
-def answerVague(sentence):
-    RelationList = findRelationVerbSingle(imperative_to_normal(sen))
-    temp = []
-    temp2 = []
-    returnList = []
-    for i in RelationList:
-        if str(i[0]) not in temp:
-            if temp != []:
-                temp2.append(temp)
-                temp = []
-            temp.append(str(i[0]))
-            temp.append(str(i[1]))
-        else:
-            temp.append(str(i[1]))
+def answerVague(sen):
+    # Yifan: fix bug: "Preheat the oven to 350 degrees F (175 degrees C)." (index1 = sen.index(item[0]) ValueError: substring not found)
+    try:
+        RelationList = findRelationVerbSingle(imperative_to_normal(sen))
+        temp = []
+        temp2 = []
+        returnList = []
+        for i in RelationList:
+            if str(i[0]) not in temp:
+                if temp != []:
+                    temp2.append(temp)
+                    temp = []
+                temp.append(str(i[0]))
+                temp.append(str(i[1]))
+            else:
+                temp.append(str(i[1]))
 
-    temp2.append(temp)
+        temp2.append(temp)
 
-    for item in temp2:
-        index1 = sen.index(item[0])
-        index2 = sen.index(item[-1])
-        returnList.append(sen[index1:index2+len(item[-1])])
-        
-    return returnList
+        for item in temp2:
+            index1 = sen.index(item[0])
+            index2 = sen.index(item[-1])
+            returnList.append(sen[index1:index2+len(item[-1])])
+            
+        return returnList
+    except:
+        return [sen.lower()[:-1]]
 
 
 #===================================================

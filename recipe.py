@@ -6,7 +6,7 @@ from web import get_soup_from_url, get_raw_ingredients_from_soup, get_raw_steps_
 from sentence_helper import raw_steps_to_list_sentences
 
 from ingredient import parse_ingredients, get_ingredients_names
-from step import parse_steps, parse_methods, parse_tools
+from step import parse_steps, parse_methods, parse_tools, Action
 
 class Recipe:
     def __init__(self, url: str) -> None:
@@ -48,6 +48,10 @@ class Recipe:
         # TODO: print more info
         step_idx, cur_action_idx = self.action_idx_to_idx_tuple[action_index]
         print(self.steps[step_idx].actions[cur_action_idx].sentence)
+    
+    def get_action(self, action_index: int) -> Action:
+        step_idx, cur_action_idx = self.action_idx_to_idx_tuple[action_index]
+        return self.steps[step_idx].actions[cur_action_idx]
     
     def list_actions(self) -> None:
         for i, index_tuple in enumerate(self.action_idx_to_idx_tuple.values()):

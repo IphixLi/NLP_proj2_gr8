@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Callable
 
 from recipe import Recipe
-from handle_questions import handle_specific_question, handle_fuzzy_what_questions
+from handle_questions import is_vague_question, is_specific_question, handle_specific_question, handle_fuzzy_what_questions, handle_fuzzy_how_questions
 
 class State(Enum):
     QUIT = -1
@@ -50,11 +50,13 @@ class RecipeStateMachine:
         print("or type 'q' to quit and return to the main menu.")
         
         while True:
+            print()
             url = input("Recipe URL (type 'q' to quit): ").strip()
             if url.lower() == "q":
                 self.state = State.QUIT
                 return
             try:
+                print()
                 print(f"Fetching recipe from {url}...")
                 self.recipe = Recipe(url)
                 self.state = State.ABSTRACT
@@ -238,7 +240,7 @@ class RecipeStateMachine:
         print(" - Enter 'n' to proceed to the next step.")
         print(" - Enter 'p' to go back to the previous step.")
         print(" - Enter 'rpt' to repeat the current step.")
-        # print(" - Enter 'query' to ask a question about the current step.")
+        print(" - Enter 'query' to ask a question about the current step.")
         print(" - Enter 'i' to list the ingredients in detail.")
         print(" - Enter 'o' to list the overview of the recipe.")
         print(" - Enter 'd' to restart the directions.")
@@ -266,7 +268,7 @@ class RecipeStateMachine:
                 'q': lambda: self.confirm_input(self.jump_to_quit),
                 'h': lambda: self.help_action(),
                 'rpt': lambda: True, # Do nothing
-                # 'query': lambda: self.handle_query(),
+                'query': lambda: self.handle_query(),
             }
             
             if user_input in input_actions:
@@ -280,17 +282,51 @@ class RecipeStateMachine:
             else:
                 print("Invalid input. Enter 'h' for help.")
     
-    def handle_query(self) -> None:
+    def help_query(self) -> None:
+        """
+        Gives the user options for what to do next after printing the ingredients.
+        """
         print()
-        
-        print("Entering query mode... You can ask a question about the current step.")
-        self.recipe.print_action(self.current_action)
-        
-        print()
-        print("What would you like to ask?")
-        print(" - Enter 'q' to quit query mode.")
+        print("You are in the query mode. What would you like to do next?")
+        print(" - Enter '(what is|how to) [some specific content]' to ask a specific question.")
+        print(" - Enter 'vague (what|how)' to see some questions you might ask about the step.")
+        print(" - Enter 's' to print the current step.")
         print(" - Enter 'h' to see this help message again.")
-        print(" - Enter 'what is .../ How to ...' to ask a question.")
+        print(" - Enter 'f' to see question formats.")
+        print(" - Enter 'q' to quit query mode.")
+    
+    def print_question_formats(self) -> None:
+        print()
+        print("Question formats:")
+        print("1. (what is|how to) [some specific content] (e.g. what is a whisk; how to preheat oven)")
+        print("2. vague (what|how) (e.g. vague what; vague how)")
+    
+    def handle_query(self) -> None:
+        self.help_query()
+        
+        while True:
+            print()
+            user_input = input("[Query mode] Your choice (enter 'h' for help): ").strip().lower()
+            if user_input == 'q':
+                print("Quitting query mode...")
+                return
+            elif user_input == 's':
+                self.recipe.print_action(self.current_action)
+            elif user_input == 'h':
+                self.help_query()
+            elif user_input == 'f':
+                self.print_question_formats()
+            elif is_specific_question(user_input):
+                handle_specific_question(user_input)
+            elif is_vague_question(user_input):
+                cur_action = self.recipe.get_action(self.current_action)
+                if "how" in user_input:
+                    handle_fuzzy_how_questions(cur_action.sentence)
+                else:
+                    handle_fuzzy_what_questions(cur_action.ingredients, cur_action.tools)
+            else:
+                print(f"'{user_input}' is neither a question nor a valid command. Enter 'h' for help, or 'f' for question formats.")
+                
     
     def finish(self) -> None:
         self.print_finish()
