@@ -2,11 +2,11 @@ from typing import Dict, Tuple
 from bs4.element import Tag
 
 
-from web import get_soup_from_url, get_raw_ingredients_from_soup, get_raw_steps_from_soup
-from sentence_helper import raw_steps_to_list_sentences
+from .web import get_soup_from_url, get_raw_ingredients_from_soup, get_raw_steps_from_soup
+from .sentence_helper import raw_steps_to_list_sentences
 
-from ingredient import parse_ingredients, get_ingredients_names
-from step import parse_steps, parse_methods, parse_tools, Action
+from .ingredient import parse_ingredients, get_ingredients_names
+from .step import parse_steps, parse_methods, parse_tools, Action
 
 class Recipe:
     def __init__(self, url: str) -> None:
@@ -32,10 +32,24 @@ class Recipe:
         print(f"Tools: {', '.join(self.tools)}")
         print(f"Methods: {', '.join(self.methods)}")
         print(self.action_idx_to_idx_tuple)
+
+    def get_abstract(self) -> str:
+        msg = f"Recipe name: {self.recipe_name}"
+        msg += f"\nNumber of actions: {self.num_actions}"
+        msg += f"\nIngredients: {', '.join(self.ingredients_names)}"
+        msg += f"\nTools: {', '.join(self.tools)}"
+        msg += f"\nMethods: {', '.join(self.methods)}"
+        return msg
     
     def print_ingredients(self) -> None:
         for ingredient in self.ingredients:
             print(ingredient)
+    
+    def get_ingredients(self) -> str:
+        msg = ""
+        for ingredient in self.ingredients:
+            msg += f"{ingredient}\n"
+        return msg
     
     def make_idx_tuple_dict(self) -> Dict[int, Tuple[int, int]]:
         idx_tuple_dict = {}
@@ -57,6 +71,21 @@ class Recipe:
             print(f"Time: {action.time}")
         print(f"Method: {', '.join(action.method)}")
         print(f"Tools: {', '.join(action.tools)}")
+
+    def get_action_info(self, action_index: int) -> str:
+        step_idx, cur_action_idx = self.action_idx_to_idx_tuple[action_index]
+        action = self.steps[step_idx].actions[cur_action_idx]
+        
+        msg = action.sentence
+        msg += "\n"
+        if action.temperature:
+            msg += f"\nTemperature: {action.temperature}"
+        msg += f"\nIngredients: {', '.join(action.ingredients)}"
+        if action.time:
+            msg += f"\nTime: {action.time}"
+        msg += f"\nMethod: {', '.join(action.method)}"
+        msg += f"\nTools: {', '.join(action.tools)}"
+        return msg
     
     def get_action(self, action_index: int) -> Action:
         step_idx, cur_action_idx = self.action_idx_to_idx_tuple[action_index]
@@ -66,6 +95,13 @@ class Recipe:
         for i, index_tuple in enumerate(self.action_idx_to_idx_tuple.values()):
             step_idx, cur_action_idx = index_tuple
             print(f"Step {i+1}: {self.steps[step_idx].actions[cur_action_idx].sentence}")
+    
+    def get_all_actions(self) -> str:
+        msg = ""
+        for i, index_tuple in enumerate(self.action_idx_to_idx_tuple.values()):
+            step_idx, cur_action_idx = index_tuple
+            msg += f"Step {i+1}: {self.steps[step_idx].actions[cur_action_idx].sentence}\n"
+        return msg
     
     
 if __name__ == "__main__":

@@ -1,0 +1,92 @@
+version: "3.1"
+
+rules:
+- rule: Process Recipe URL after User Inputs URL
+  steps:
+  - intent: input_url
+  - action: action_process_recipe_url
+
+- rule: Print Recipe Abstract
+  steps:
+  - intent: print_abstract
+  - action: action_print_abstract
+
+- rule: Print Recipe Ingredients
+  steps:
+  - intent: print_ingredients
+  - action: action_print_ingredients
+
+- rule: Print All Actions
+  steps:
+  - intent: print_all_actions
+  - action: action_print_all_actions
+
+- rule: Next Step
+  steps:
+  - intent: next_step
+  - action: action_next_step
+
+- rule: Previous Step
+  steps:
+  - intent: previous_step
+  - action: action_previous_step
+
+- rule: Repeat Step
+  steps:
+  - intent: repeat_step
+  - action: action_repeat_step
+
+- rule: Restart Instructions
+  steps:
+  - intent: restart_instructions
+  - action: action_restart_instructions
+
+- rule: Jump to Step
+  steps:
+  - intent: jump_to_step
+  - action: action_jump_to_step
+
+- rule: Ask Step Parameter
+  steps:
+  - intent: ask_step_parameter
+  - action: action_ask_step_parameter
+
+- rule: Ask Vague What
+  steps:
+  - intent: ask_vague_what
+  - action: action_ask_vague_what
+
+- rule: Ask Vague How
+  steps:
+  - intent: ask_vague_how
+  - action: action_ask_vague_how
+
+- rule: Ask Specific
+  steps:
+  - intent: ask_specific
+  - action: action_ask_specific
+
+- rule: Help
+  steps:
+  - intent: help
+  - action: action_help
+
+- rule: Quit Recipe
+  steps:
+  - intent: quit_recipe
+  - action: action_quit_recipe
+
+- rule: out-of-scope
+  steps:
+  - intent: out_of_scope
+  - action: utter_out_of_scope
+
+# - rule: Say goodbye anytime the user says goodbye
+#   steps:
+#   - intent: goodbye
+#   - action: utter_goodbye
+
+# - rule: Say 'I am a bot' anytime the user challenges
+#   steps:
+#   - intent: bot_challenge
+#   - action: utter_iamabot

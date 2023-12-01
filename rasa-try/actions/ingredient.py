@@ -83,7 +83,7 @@ class Ingredient:
             return tuple(name_text.split(", ", 1))
         else:
             return name_text, ""
-    
+
     def __repr__(self) -> str:
         return f"quantity: {self.quantity}, unit: {self.unit}, name: {self.name}, preparation: {self.preparation}"
     

@@ -5,8 +5,8 @@ from fuzzywuzzy import process
 nlp = spacy.load("en_core_web_sm")
 
 
-from ingredient import Ingredient
-from ToActionFuctions import findTool, findMethod
+from .ingredient import Ingredient
+from .ToActionFuctions import findTool, findMethod
 
 # TODO: modify types (using self-defined types)
 DefineTemp = Tuple[str, str] # (temperature, unit)
@@ -20,7 +20,8 @@ IngredientsType = Union[List[DefineIngrdnt], None]
 TimeType = Union[DefineTime, None]
 MethodsType = Union[List[DefineMethod], None]
 ToolsType = Union[List[DefineTool], None]
-from sentence_helper import celsius_to_fahren
+
+from .sentence_helper import celsius_to_fahren
 
 
 def custom_tokenizer(nlp):
@@ -91,9 +92,9 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
         unique_matched_ingredients = list(set(sentence_match))
         matched_ingredients.append(unique_matched_ingredients)
 
-    print("ingr: ", matched_ingredients)
-    print(sentences)
-    print("---------------")
+    # print("ingr: ", matched_ingredients)
+    # print(sentences)
+    # print("---------------")
     return matched_ingredients
 
 def to_time(sentences: List[str]) -> List[TimeType]:
@@ -159,6 +160,12 @@ class Action:
         self.time = time
         self.method = method
         self.tools = tools
+    
+    def get_time_str(self) -> str:
+        return time_to_str(self.time)
+    
+    def get_temperature_str(self) -> str:
+        return temperature_to_str(self.temperature)
 
 class Step:
     def __init__(self, sentences: List[str], ingredients_names: List[str]) -> None:
@@ -171,7 +178,7 @@ class Step:
         tools_list = to_tools(sentences)
 
         for i in range(len(sentences)):
-            print("res: ", sentences[i],temperature_value,ingredients_list[i],time_list[i],method_list[i],tools_list[i])
+            # print("res: ", sentences[i],temperature_value,ingredients_list[i],time_list[i],method_list[i],tools_list[i])
             self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)

@@ -1,0 +1,5 @@
+spacy                       # sm, md, lg (python -m spacy download en_core_web_lg)
+fuzzywuzzy                  # fuzzy string matching
+python-Levenshtein          # fuzzy string matching
+bs4                         # for web scraping
+rasa                        # for chatbot (rasa train?)
