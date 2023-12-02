@@ -4,14 +4,12 @@ import spacy
 from fuzzywuzzy import process
 nlp = spacy.load("en_core_web_sm")
 spacy_model = spacy.load("en_core_web_lg")
-import warnings
-warnings.filterwarnings("ignore")
 
 
-from ingredient import Ingredient
-from ToActionFuctions import findTool, findMethod
-from sentence_helper import imperative_to_normal
-from spacy_helper import find_ingredient_index, find_num_index_list
+from .ingredient import Ingredient
+from .ToActionFuctions import findTool, findMethod
+from .sentence_helper import imperative_to_normal
+from .spacy_helper import find_ingredient_index, find_num_index_list
 
 # TODO: modify types (using self-defined types)
 DefineTemp = Tuple[str, str] # (temperature, unit)
@@ -25,7 +23,8 @@ IngredientsType = Union[List[DefineIngrdnt], None]
 TimeType = Union[DefineTime, None]
 MethodsType = Union[List[DefineMethod], None]
 ToolsType = Union[List[DefineTool], None]
-from sentence_helper import celsius_to_fahren
+
+from .sentence_helper import celsius_to_fahren
 
 
 def custom_tokenizer(nlp):
@@ -96,6 +95,9 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
         unique_matched_ingredients = list(set(sentence_match))
         matched_ingredients.append(unique_matched_ingredients)
 
+    # print("ingr: ", matched_ingredients)
+    # print(sentences)
+    # print("---------------")
     return matched_ingredients
 
 def to_time(sentences: List[str]) -> List[TimeType]:
@@ -174,7 +176,7 @@ class Action:
         return self.ingredients_info.get(ingredient_name, "")
 
     def find_all_ingredients_info(self, ingredient_names: List[str]) -> Dict[str, str]:
-        """Return a dictionary of (ingredient, info_str) pairs."""
+        """Dictionary of (ingredient, info_str) pairs."""
         imperative_sentence = imperative_to_normal(self.sentence)
         doc = spacy_model(imperative_sentence)
         
@@ -211,7 +213,6 @@ class Action:
                 result_dict[sorted_i_index_list[i_ptr][0]] = info_str
                 num_ptr += 1
         return result_dict
-        
 
 class Step:
     def __init__(self, sentences: List[str], ingredients_names: List[str]) -> None:
@@ -224,6 +225,7 @@ class Step:
         tools_list = to_tools(sentences)
 
         for i in range(len(sentences)):
+            # print("res: ", sentences[i],temperature_value,ingredients_list[i],time_list[i],method_list[i],tools_list[i])
             self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)

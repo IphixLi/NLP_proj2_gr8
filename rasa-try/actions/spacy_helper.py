@@ -1,6 +1,6 @@
 import spacy
-from spacy import Language
 from typing import Union, List
+from spacy import Language
 
 def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> Union[spacy.tokens.Token, None]:
     """Find the most related verb of a noun chunk (the closest ancestor that is a verb)."""

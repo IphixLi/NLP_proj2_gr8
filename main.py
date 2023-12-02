@@ -291,6 +291,9 @@ class RecipeStateMachine:
         print(" - Enter '(what is|how to) [some specific content]' to ask a specific question.")
         print(" - Enter 'vague (what|how)' to see some questions you might ask about the step.")
         print(" - Enter 's' to print the current step.")
+        print(" - Enter 'i [ingredient name]' to see the details of an ingredient.")
+        print(" - Enter 'temp' to see the temperature information of the current step.")
+        print(" - Enter 'time' to see the time information of the current step.")
         print(" - Enter 'h' to see this help message again.")
         print(" - Enter 'f' to see question formats.")
         print(" - Enter 'q' to quit query mode.")
@@ -300,8 +303,11 @@ class RecipeStateMachine:
         print("Question formats:")
         print("1. (what is|how to) [some specific content] (e.g. what is a whisk; how to preheat oven)")
         print("2. vague (what|how) (e.g. vague what; vague how)")
+        print("3. i [ingredient name] (e.g. i flour)")
+        print("4. temp")
+        print("5. time")
     
-    def handle_query(self) -> None:
+    def handle_query(self) -> bool:
         self.help_query()
         
         while True:
@@ -309,13 +315,48 @@ class RecipeStateMachine:
             user_input = input("[Query mode] Your choice (enter 'h' for help): ").strip().lower()
             if user_input == 'q':
                 print("Quitting query mode...")
-                return
+                print()
+                return True
             elif user_input == 's':
-                self.recipe.print_action(self.current_action)
+                self.print_action()
             elif user_input == 'h':
                 self.help_query()
             elif user_input == 'f':
                 self.print_question_formats()
+            elif 'i ' in user_input:
+                action = self.recipe.get_action(self.current_action)
+                ingredient_name = user_input[2:]
+                # find the valid ingredient name from the global ingredient list
+                ingredient = None
+                for ingdt_candidate in self.recipe.ingredients:
+                    if ingdt_candidate.is_same_ingredient(ingredient_name):
+                        ingredient = ingdt_candidate
+                        break
+                if not ingredient:
+                    print(f"Sorry, I can't find the ingredient '{ingredient_name}'.")
+                    continue
+                # use the valid ingredient name to find ingredient info in the current step
+                # if failed, print the ingredient info in the ingredients list
+                ingredient_str = action.get_ingredients_info_str(ingredient.name)
+                if ingredient_str:
+                    print(f"You need {ingredient_str} in this step.")
+                else:
+                    print(f"There is probably no specific information available about '{ingredient_name}' in this particular step. " + \
+                          f"However, I find related information in the ingredients list: {ingredient}.")
+            elif user_input == 'temp':
+                action = self.recipe.get_action(self.current_action)
+                temperature_str = action.get_temperature_str()
+                if temperature_str:
+                    print(f"The temperature for this step is {temperature_str}.")
+                else:
+                    print("Sorry, I can't find temperature information for this step.")
+            elif user_input == 'time':
+                action = self.recipe.get_action(self.current_action)
+                time_str = action.get_time_str()
+                if time_str:
+                    print(f"The time for this step is {time_str}.")
+                else:
+                    print("Sorry, I can't find time information for this step.")
             elif is_specific_question(user_input):
                 handle_specific_question(user_input)
             elif is_vague_question(user_input):

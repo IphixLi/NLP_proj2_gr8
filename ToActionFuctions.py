@@ -183,7 +183,8 @@ tool_method_list = {
     "seafood crackers",
     "refrigerator",
     "grill",
-    "twine" 
+    "twine",
+    "air fryer"
   ],
     "bad_verb":[
         "have",
@@ -191,7 +192,13 @@ tool_method_list = {
         "use",
         "depend",
         "approximate",
-        "continue"
+        "continue",
+        "start",
+        "create",
+        "accord",
+        "work",
+        "finish",
+        "return"
     ],
       "cooking_methods": [
     "bake",

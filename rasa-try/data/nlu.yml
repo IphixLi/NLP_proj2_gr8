@@ -1,0 +1,363 @@
+version: "3.1"
+
+nlu:
+- regex: recipe_url
+  examples: |
+    - \bhttps://www\.allrecipes\.com/\S+
+
+- regex: step_index
+  examples: |
+    - \d+(|st|nd|rd|th|-st|-nd|-rd|-th)
+
+- regex: ingredient
+  examples: |
+    - \b[a-zA-Z]+
+
+- intent: input_url
+  examples: |
+    - Here is the recipe link: [https://www.allrecipes.com/0](recipe_url)
+    - recipe link is [https://www.allrecipes.com/1](recipe_url)
+    - The recipe is [https://www.allrecipes.com/2](recipe_url)
+    - Check out this URL [https://www.allrecipes.com/8](recipe_url)
+    - Visit [https://www.allrecipes.com/a](recipe_url) for the recipe
+    - [https://www.allrecipes.com/a](recipe_url)
+    - Walk me through a recipe from Allrecipes
+    - I want to cook a recipe from Allrecipes
+    - I have a recipe
+
+- intent: print_abstract
+  examples: |
+    - What is the recipe about?
+    - What is the abstract?
+    - What is the recipe abstract?
+    - Show me the overview
+    - Show me the abstract
+    - Show me the recipe abstract
+    - Show me the recipe overview
+    - Let me see the abstract
+    - Abstract please
+    - Abstract
+    - Overview
+
+- intent: print_ingredients
+  examples: |
+    - What are the ingredients?
+    - What are the ingredients for the recipe?
+    - List the ingredients
+    - List the ingredients for the recipe
+    - Show me the ingredients list
+    - Show me the ingredients for the recipe
+    - Show me the recipe ingredients
+    - Let me see the ingredients
+    - Ingredients please
+    - Ingredients list
+    - Ingredients
+
+- intent: print_all_actions
+  examples: |
+    - List all actions
+    - List all steps
+    - What are all the actions?
+    - What are all the steps?
+    - Show me all the actions
+    - Show me all the steps
+    - Show me the list of actions
+    - Show me the list of steps
+    - Let me see all the actions
+    - Let me see all the steps
+    - All actions please
+    - All steps please
+    - All actions
+    - All steps
+    - Actions
+    - Steps
+
+- intent: next_step
+  examples: |
+    - Next step
+    - Next
+    - Next action
+    - Next step please
+    - Next please
+    - Next action please
+    - What's next?
+    - What's the next step?
+    - What should I do now?
+    - Can you tell me the next action?
+    - What comes next?
+    - Guide me to the next point.
+    - What's the following step?
+    - Lead me to the next part.
+    - Show me the next action.
+    - Next step, please.
+    - Continue to the next instruction.
+    - How do I proceed from here?
+    - What is the next procedure?
+    - What do I do next?
+    - Go to the next step.
+    - Now what?
+    - What's next on the list?
+    - Proceed to the next step.
+    - Proceed one step further.
+
+
+- intent: previous_step
+  examples: |
+    - Previous step
+    - Previous
+    - Previous action
+    - Previous step please
+    - Previous please
+    - Previous action please
+    - Last step
+    - Last action
+    - Can we go back to the previous step?
+    - What was the step before this?
+    - I need to review the last action.
+    - Can you repeat the previous instruction?
+    - Show me the step before.
+    - Take me back one step.
+    - Let's go back to the last part.
+    - I think I missed the previous point.
+    - Could you go over the last step again?
+    - What did we do just before this?
+    - I want to revisit the previous action.
+    - How do I go back to the last step?
+    - Undo the last step.
+    - Previous step, please.
+    - Let's return to the previous instruction.
+    - Can you backtrack to the earlier step?
+    - Go back one step.
+
+- intent: repeat_step
+  examples: |
+    - Repeat step
+    - Repeat
+    - Repeat action
+    - Repeat step please
+    - Repeat please
+    - Repeat action please
+    - I want to repeat the step
+    - I didn't get that
+    - I didn't catch that
+    - Please repeat
+    - Repeat that
+    - Repeat that please
+    - Could you repeat that step?
+    - Can you say that step again?
+    - I didn't catch that, please repeat.
+    - Please go over that step once more.
+    - Can you explain that step again?
+    - I need to hear that step one more time.
+    - Repeat the last instruction, please.
+    - Say that step again, please.
+    - Could you go over that part again?
+    - What was that step? Repeat, please.
+    - I missed that, can you repeat the step?
+    - Please run through that step again.
+    - I didn't understand, could you repeat?
+    - Go back and say that step again.
+    - Can we revisit that last part?
+    - Explain that step once more, please.
+    - Show me the current step.
+
+
+- intent: restart_instructions
+  examples: |
+    - Restart instructions
+    - Restart
+    - Restart please
+    - Can we start over from the beginning?
+    - I want to restart all steps.
+    - Let's go back to the first step.
+    - Can you take me back to the start?
+    - Start from the beginning, please.
+    - I need to begin all over again.
+    - Let's reset and start from scratch.
+    - Please restart the whole process.
+    - Go back to step one.
+    - I'd like to start the instructions from the top.
+    - Can we redo everything from the start?
+    - Restart from the first instruction.
+    - Let's begin again from the first step.
+    - I want to go through all the steps again.
+    - Take me back to the beginning, please.
+
+- intent: jump_to_step
+  examples: |
+    - Go to step [3](step_index)
+    - Jump to step [5](step_index)
+    - Can you take me to [21st](step_index) step?
+    - Move to [3rd](step_index) step
+    - Move to step [4](step_index) please
+    - I want to skip to step [6](step_index)
+    - Show me what's in step [1](step_index)
+    - Navigate to step [8](step_index)
+    - Let's go to [10th](step_index) step
+    - Let's move to [11-th](step_index) step
+    - Can we move to step [7](step_index)?
+    - Proceed to step [19](step_index)
+    - Take me to [12-th](step_index) step
+    - Go to [1-st](step_index) step
+    - Jump to [3-rd](step_index) step
+    - Jump to [2nd](step_index) step
+  
+- intent: ask_step_parameter
+  examples: |
+    - How much of [flour](ingredient) do I need?
+    - How much [ham](ingredient) do I need?
+    - How much [salt](ingredient) do I need?
+    - How many [eggs](ingredient) should I use?
+    - How many [onions](ingredient) are needed?
+    - How many [tomatoes](ingredient)?
+    - How many [salmon](ingredient) is necessary?
+    - What temperature should I set?
+    - How long do I [bake](cooking_technique)?
+    - How long do I [cook](cooking_technique)?
+    - How long do I [fry](cooking_technique)?
+    - When is the [cake](dish) done?
+    - When is the [soup](dish) done?
+    - When is the [steak](dish) done?
+    - When is the [rice](dish) done?
+    - When is it done?
+
+- intent: ask_vague_what
+  examples: |
+    - What's that?
+    - What the heck is that?
+    - What is that?
+
+- intent: ask_vague_how
+  examples: |
+    - How do I do that?
+    - How do I do this?
+    - How do I do it?
+    - How to do that?
+    - How to do this?
+    - How to do it?
+    - How to do that step?
+
+- intent: ask_specific
+  examples: |
+    - What is a [air fryer](tool)?
+    - What is a [blender](tool)?
+    - What's [bowl](tool)?
+    - What is [broiler](tool)?
+    - How to [preheat the oven](specific technique)?
+    - How do I [brush wraps](specific technique)?
+    - How do I [chop onions](specific technique)?
+    - How do I [stir the mixture](specific technique)?
+  
+
+- intent: help
+  examples: |
+    - Print help message
+    - Help
+    - I need help
+    - What should I input?
+    - Help message please
+    - Help message
+
+- intent: quit_recipe
+  examples: |
+    - Quit recipe
+    - Stop recipe
+    - Exit recipe
+    - Quit
+    - Stop
+    - Exit
+
+- intent: out_of_scope
+  examples: |
+    - I want to order food
+    - What is 2 + 2?
+    - Who's the US President?
+
+# - intent: greet
+#   examples: |
+#     - hey
+#     - hello
+#     - hi
+#     - hello there
+#     - good morning
+#     - good evening
+#     - moin
+#     - hey there
+#     - let's go
+#     - hey dude
+#     - goodmorning
+#     - goodevening
+#     - good afternoon
+
+# - intent: goodbye
+#   examples: |
+#     - cu
+#     - good by
+#     - cee you later
+#     - good night
+#     - bye
+#     - goodbye
+#     - have a nice day
+#     - see you around
+#     - bye bye
+#     - see you later
+
+# - intent: affirm
+#   examples: |
+#     - yes
+#     - y
+#     - indeed
+#     - of course
+#     - that sounds good
+#     - correct
+
+# - intent: deny
+#   examples: |
+#     - no
+#     - n
+#     - never
+#     - I don't think so
+#     - don't like that
+#     - no way
+#     - not really
+
+# - intent: mood_great
+#   examples: |
+#     - perfect
+#     - great
+#     - amazing
+#     - feeling like a king
+#     - wonderful
+#     - I am feeling very good
+#     - I am great
+#     - I am amazing
+#     - I am going to save the world
+#     - super stoked
+#     - extremely good
+#     - so so perfect
+#     - so good
+#     - so perfect
+
+# - intent: mood_unhappy
+#   examples: |
+#     - my day was horrible
+#     - I am sad
+#     - I don't feel very well
+#     - I am disappointed
+#     - super sad
+#     - I'm so sad
+#     - sad
+#     - very sad
+#     - unhappy
+#     - not good
+#     - not very good
+#     - extremly sad
+#     - so saad
+#     - so sad
+
+# - intent: bot_challenge
+#   examples: |
+#     - are you a bot?
+#     - are you a human?
+#     - am I talking to a bot?
+#     - am I talking to a human?
