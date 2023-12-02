@@ -6,6 +6,7 @@ nlp = spacy.load("en_core_web_sm")
 spacy_model = spacy.load("en_core_web_lg")
 import warnings
 warnings.filterwarnings("ignore")
+from transformation import *
 
 
 from ingredient import Ingredient
@@ -84,7 +85,7 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
         sentence_match=[]
         doc = nlp(sentence.lower())
         # Extract noun phrases (potential ingredients)
-        potential_ingredients = [chunk.text.strip() for chunk in doc if chunk.text.strip()]
+        potential_ingredients = [token.text.strip() for token in doc if token.text.strip() and not token.is_stop]
         for potential in potential_ingredients:
             try:
                 if str(potential).strip():
@@ -223,11 +224,16 @@ class Step:
         method_list = to_method(sentences)
         tools_list = to_tools(sentences)
 
+        print("ingredient_list: ", ingredients_list)
+        print()
+        print("transformed: ",transform_ingredient_list(ingredients_list,"healthy"))
+
         for i in range(len(sentences)):
             self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)
         self.methods = collect_methods(method_list)
+
 
 
 def parse_steps(sentences_list: List[List[str]], ingredients_names: List[str]) -> List[Step]:
