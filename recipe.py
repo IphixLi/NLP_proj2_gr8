@@ -1,12 +1,13 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from bs4.element import Tag
 
 
 from web import get_soup_from_url, get_raw_ingredients_from_soup, get_raw_steps_from_soup
 from sentence_helper import raw_steps_to_list_sentences
 
-from ingredient import parse_ingredients, get_ingredients_names
+from ingredient import parse_ingredients, get_ingredients_names, Ingredient
 from step import parse_steps, parse_methods, parse_tools, Action
+from quantity_transformation import transform_quantity
 
 class Recipe:
     def __init__(self, url: str) -> None:
@@ -14,6 +15,7 @@ class Recipe:
         raw_ingredients = get_raw_ingredients_from_soup(soup)
         raw_steps = get_raw_steps_from_soup(soup)
         sentences_list = raw_steps_to_list_sentences(raw_steps) # each step is a list of sentences
+        self.sentences_list = sentences_list
         self.ingredients = parse_ingredients(raw_ingredients)
         self.ingredients_names = get_ingredients_names(self.ingredients)
         self.steps = parse_steps(sentences_list, self.ingredients_names)
@@ -23,6 +25,17 @@ class Recipe:
         self.tools = parse_tools(self.steps)
         self.methods = parse_methods(self.steps)
         self.num_actions = sum([len(sentences) for sentences in sentences_list])
+        self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
+    
+    def transform(self, new_sentences_list: List[List[str]], new_ingredients: List[Ingredient]) -> None:
+        self.sentences_list = new_sentences_list
+        self.ingredients = new_ingredients
+        self.ingredients_names = get_ingredients_names(self.ingredients)
+        self.steps = parse_steps(new_sentences_list, self.ingredients_names)
+        
+        self.tools = parse_tools(self.steps)
+        self.methods = parse_methods(self.steps)
+        self.num_actions = sum([len(sentences) for sentences in new_sentences_list])
         self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
         
     def print_abstract(self) -> None:
@@ -74,7 +87,14 @@ if __name__ == "__main__":
     # url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
     # url = "https://www.allrecipes.com/recipe/217331/goan-pork-vindaloo/"
     recipe = Recipe(url)
-    # print(recipe.tools)
-    # print(recipe.methods)
+    recipe.list_actions() # check actions
+    recipe.print_ingredients() # check ingredients
+    # recipe.print_abstract() # check methods and tools
     
-    
+    print()
+    print()
+    new_sentences_list, new_ingredients = transform_quantity(recipe.sentences_list, recipe.ingredients, 0.5)
+    recipe.transform(new_sentences_list, new_ingredients)
+    recipe.list_actions()
+    recipe.print_ingredients()
+    # recipe.print_abstract()

@@ -5,6 +5,12 @@ from unicodedata import numeric
 from fractions import Fraction
 from fuzzywuzzy import fuzz
 
+def quantity_to_str(quantity: float) -> str:
+    if quantity.is_integer():
+        return str(int(quantity))
+    else:
+        return str(quantity)
+
 class Ingredient:
     def __init__(self, ingredient: Tag) -> None:
         self.string = ingredient.text
@@ -24,6 +30,7 @@ class Ingredient:
             return False
 
     def update_remaining_quantity(self,new_quantity: float) -> None:
+        self.string = self.string.replace(quantity_to_str(self.remaining_quantity), quantity_to_str(new_quantity))
         self.remaining_quantity=new_quantity
 
     def update_unit(self,new_unit: str) -> None:
@@ -65,6 +72,8 @@ class Ingredient:
                 pass
             
             print(f"Error in extract quantity for ingredients: fail to convert {quantity_part} to float or fraction")
+        if quantity > 0.0:
+            self.string = self.string.replace(quantity_text, quantity_to_str(quantity))
         return quantity, ""
     
     def extract_unit(self, ingredient: Tag, remaining_str: str) -> str:

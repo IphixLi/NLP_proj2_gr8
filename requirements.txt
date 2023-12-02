@@ -3,3 +3,4 @@ fuzzywuzzy                  # fuzzy string matching
 python-Levenshtein          # fuzzy string matching
 bs4                         # for web scraping
 rasa                        # for chatbot (rasa train?)
+word2num                    # for converting words to numbers
