@@ -16,26 +16,24 @@ def findTool(ListSentence):
     return toolList
 
 def findMethod(ListSentence):
-    # Yifan:
-    # - Roll 1 of the opposing edges around the filling creating a burrito. (['create', 'roll', 'oppose'])
-    # - Preheat an air fryer to 400 degrees F (200 degrees C) according to manufacturer’s instructions. (['preheat', 'accord'])
-    methodList = []
+    prime = []
+    verbs = []
     for i in ListSentence:
-        single1 = findAllVerbSingle(imperative_to_normal(i))
-        single2 = findMethodSingle(imperative_to_normal(i))
-        single1.extend(single2)
-        single =list(set(single1)) 
-        for j in single:
+        single1 = list(set(findRelationVerbSingle(imperative_to_normal(i))))
+        single2 = list(set(findMethodSingle(imperative_to_normal(i))))
+        prime.append(single2) 
+        for j in single1:
             if j in tool_method_list["bad_verb"]:
-                single.remove(j)
-        methodList.append(single)
-    return methodList
-
+                single1.remove(j)
+            if j in single2:
+                single1.remove(j)
+        verbs.append(single1)
+    return prime, verbs   
 
 def answerVague(sen):
     # Yifan: fix bug: "Preheat the oven to 350 degrees F (175 degrees C)." (index1 = sen.index(item[0]) ValueError: substring not found)
     try:
-        RelationList = findRelationVerbSingle(imperative_to_normal(sen))
+        RelationList = findRelationVerbNoun(imperative_to_normal(sen))
         temp = []
         temp2 = []
         returnList = []
@@ -69,8 +67,11 @@ def findToolSingle(sentence):
     toolList = []
     sentence = sentence.lower()
     for i in tool_method_list["cooking_tools"]:
-        if i in sentence:
+        if match_whole_word(sentence, i):
             toolList.append(i)
+            if " " in i:
+                j = i.replace(" ", "")
+                sentence = sentence.replace(i, j)
     return toolList
 
 
@@ -84,7 +85,7 @@ def findMethodSingle(sentence):
     return methodllist
 
 
-#find verb
+#find verb method 1
 def findAllVerbSingle(sentence):
     doc = nlp(sentence)
     verbs = []
@@ -94,8 +95,20 @@ def findAllVerbSingle(sentence):
     return list(set(verbs))
 
 
-#find verb noun relation
+#find verb method 2
 def findRelationVerbSingle(sentence):
+    verbs = []
+    spacy_output = spacy_model(sentence)
+    for n in spacy_output.noun_chunks:
+        if n.text == "You":
+            continue
+        verb = find_most_related_verb(n)
+        if verb is not None:
+            verbs.append(verb.lemma_)
+    return list(set(verbs))
+
+#find verb noun relation
+def findRelationVerbNoun(sentence):
     verblist = []
     spacy_output = spacy_model(sentence)
     for n in spacy_output.noun_chunks:
@@ -105,6 +118,7 @@ def findRelationVerbSingle(sentence):
         if verb is not None:
             verblist.append([verb,n])
     return verblist
+
 def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> [spacy.tokens.Token, None]:
     cur_token = noun_chunk.root
 
@@ -122,69 +136,76 @@ def match_whole_word(text, word):
 
 #normalization
 def imperative_to_normal(sentence: str) -> str:
-    try:
-        i = sentence.index(",")
-        if " " not in sentence[:i]:
-            sentence = sentence[i+2 :]
+    try:        
+        while sentence.startswith(" "):
+            sentence = sentence[1:]
+        if sentence == '' or sentence.startswith("You"):
+            return sentence
+        if "," in sentence:
+            i = sentence.index(",")
+            if " " not in sentence[:i]:
+                sentence = sentence[i+2 :]
+        if sentence.endswith("."):
+            return f"You {sentence[0].lower()}{sentence[1:]}"
+        else:
+            return f"You {sentence[0].lower()}{sentence[1:]}."
+    
     except Exception:
-        pass
-    if sentence.endswith("."):
-        return f"You {sentence[0].lower()}{sentence[1:]}"
-    else:
-        return f"You {sentence[0].lower()}{sentence[1:]}."
+        return sentence
 
 
 
 #keywordlist
 tool_method_list = {
   "cooking_tools": [
-    "pot",
-    "pan",
-    "knife",
     "cutting board",
     "mixing bowl",
     "measuring cup",
-    "measuring spoon",
-    "whisk",
-    "spatula",
-    "tong",
+    "measuring spoon",    
     "wooden spoon",
-    "slotted spoon",
-    "ladle",
-    "skillet",
-    "saucepan",
-    "oven",
-    "stockpot",
+    "slotted spoon",    
     "roasting pan",
     "baking sheet",
     "rolling pin",
     "pastry brush",
     "kitchen shears",
-    "grater",
-    "zester",
-    "vegetable peeler",
-    "can opener",
-    "colander",
-    "strainer",
+    "vegetable peeler",    
     "mixing spoon",
     "silicone spatula",
-    "meat thermometer",
+    "meat thermometer",    
     "oven mitts",
     "pot holder",
     "kitchen timer",
-    "food processor",
-    "blender",
+    "food processor",    
+    "can opener",    
     "stand mixer",
-    "hand mixer",
-    "mortar and pestle",
+    "hand mixer", 
     "pastry cutter",
     "mandoline slicer",
     "garlic press",
-    "seafood crackers",
+    "seafood crackers",    
+    "air fryer",
+    "mortar",
+    "pestle",   
+    "pot",
+    "pan",
+    "knife",
+    "whisk",
+    "spatula",
+    "tong",
+    "ladle",
+    "skillet",
+    "saucepan",
+    "oven",
+    "stockpot",
+    "grater",
+    "zester",
+    "colander",
+    "strainer",
+    "blender",
     "refrigerator",
     "grill",
-    "twine",
-    "air fryer"
+    "twine"
   ],
     "bad_verb":[
         "have",
@@ -213,33 +234,16 @@ tool_method_list = {
     "boil",
     "steam",
     "poach",
-    "blanch",
     "pressure cook",
     "braise",
     "smoke",
-    "sear",
-    "glaze",
-    "sous-vide",
     "marinate",
     "chill",
     "freeze",
-    "defrost",
     "ferment",
-    "caramelize",
-    "toast",
-    "infuse",
-    "reduce",
-    "whip",
-    "fold",
-    "knead",
     "mix",
     "blend",
-    "emulsify",
-    "froth",
-    "macerate",
     "stir",
-    "heat",
-    "cook",
-    "pour"
+    "heat"
   ]
 }
