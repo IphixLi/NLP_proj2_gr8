@@ -21,7 +21,7 @@ def findMethod(ListSentence):
     # - Preheat an air fryer to 400 degrees F (200 degrees C) according to manufacturer’s instructions. (['preheat', 'accord'])
     methodList = []
     for i in ListSentence:
-        single1 = findAllVerbSingle(imperative_to_normal(i))
+        single1 = findRelationVerbSingle(imperative_to_normal(i))
         single2 = findMethodSingle(imperative_to_normal(i))
         single1.extend(single2)
         single =list(set(single1)) 
@@ -35,7 +35,7 @@ def findMethod(ListSentence):
 def answerVague(sen):
     # Yifan: fix bug: "Preheat the oven to 350 degrees F (175 degrees C)." (index1 = sen.index(item[0]) ValueError: substring not found)
     try:
-        RelationList = findRelationVerbSingle(imperative_to_normal(sen))
+        RelationList = findRelationVerbNoun(imperative_to_normal(sen))
         temp = []
         temp2 = []
         returnList = []
@@ -84,7 +84,7 @@ def findMethodSingle(sentence):
     return methodllist
 
 
-#find verb
+#find verb method 1
 def findAllVerbSingle(sentence):
     doc = nlp(sentence)
     verbs = []
@@ -94,8 +94,20 @@ def findAllVerbSingle(sentence):
     return list(set(verbs))
 
 
-#find verb noun relation
+#find verb method 2
 def findRelationVerbSingle(sentence):
+    verbs = []
+    spacy_output = spacy_model(sentence)
+    for n in spacy_output.noun_chunks:
+        if n.text == "You":
+            continue
+        verb = find_most_related_verb(n)
+        if verb is not None:
+            verbs.append(verb.lemma_)
+    return list(set(verbs))
+
+#find verb noun relation
+def findRelationVerbNoun(sentence):
     verblist = []
     spacy_output = spacy_model(sentence)
     for n in spacy_output.noun_chunks:
@@ -105,6 +117,7 @@ def findRelationVerbSingle(sentence):
         if verb is not None:
             verblist.append([verb,n])
     return verblist
+
 def find_most_related_verb(noun_chunk: spacy.tokens.Span) -> [spacy.tokens.Token, None]:
     cur_token = noun_chunk.root
 
@@ -123,9 +136,10 @@ def match_whole_word(text, word):
 #normalization
 def imperative_to_normal(sentence: str) -> str:
     try:
-        i = sentence.index(",")
-        if " " not in sentence[:i]:
-            sentence = sentence[i+2 :]
+        if "," in sentence:
+            i = sentence.index(",")
+            if " " not in sentence[:i]:
+                sentence = sentence[i+2 :]
     except Exception:
         pass
     if sentence.endswith("."):
