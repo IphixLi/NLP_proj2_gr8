@@ -136,15 +136,15 @@ def match_whole_word(text, word):
 
 #normalization
 def imperative_to_normal(sentence: str) -> str:
-    try:
-        if sentence == '':
+    try:        
+        while sentence.startswith(" "):
+            sentence = sentence[1:]
+        if sentence == '' or sentence.startswith("You"):
             return sentence
         if "," in sentence:
             i = sentence.index(",")
             if " " not in sentence[:i]:
                 sentence = sentence[i+2 :]
-        while sentence.startswith(" "):
-            sentence = sentence[1:]
         if sentence.endswith("."):
             return f"You {sentence[0].lower()}{sentence[1:]}"
         else:
