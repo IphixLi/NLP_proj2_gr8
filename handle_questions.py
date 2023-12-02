@@ -3,6 +3,17 @@ from typing import List
 from ToActionFuctions import answerVague
 from step import IngredientsType, ToolsType
 
+def is_about_quantity(sentence:str)->bool:
+    """Returns True if the sentence is  about quantity
+    
+    Possible formats:
+    - (how much|how many) [some ingredient]: specific
+    """
+    if sentence.startswith("how much ") or sentence.startswith("how many "):
+        return True
+    else:
+        return False
+
 def is_specific_question(sentence: str) -> bool:
     """Returns True if the sentence is a specific question.
     
@@ -31,10 +42,15 @@ def is_question(sentence: str) -> bool:
     Possible formats:
     - (what is|how to) [some specific content]: specific
     - vague (what|how): vague
+    - How much of <ingredient> do I need?, 
+
+    - How long do I <specific technique>?
     """
     if sentence.startswith("what is ") or sentence.startswith("how to "):
         return True
     elif sentence in ["vague what", "vague how"]:
+        return True
+    elif sentence in ["how much","how many"]:
         return True
     else:
         return False      
@@ -58,6 +74,9 @@ def handle_specific_question(question: str) -> None:
     print("-------------------")
     print(f"- answers from google: {build_url_from_question(question, use_google=True)}")
     print(f"- answers from youtube: {build_url_from_question(question, use_google=False)}")
+    
+def handle_quantity_question(question:str) -> None:
+    print()
     
     
 def handle_fuzzy_what_questions(ingredients_names: IngredientsType, tools: ToolsType) -> None:

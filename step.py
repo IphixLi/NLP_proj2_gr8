@@ -3,6 +3,8 @@ import re
 import spacy
 from fuzzywuzzy import process
 nlp = spacy.load("en_core_web_sm")
+import warnings
+warnings.filterwarnings("ignore")
 
 
 from ingredient import Ingredient
@@ -81,9 +83,6 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
         unique_matched_ingredients = list(set(sentence_match))
         matched_ingredients.append(unique_matched_ingredients)
 
-    print("ingr: ", matched_ingredients)
-    print(sentences)
-    print("---------------")
     return matched_ingredients
 
 def to_time(sentences: List[str]) -> List[TimeType]:
@@ -146,7 +145,6 @@ class Step:
         tools_list = to_tools(sentences)
 
         for i in range(len(sentences)):
-            print("res: ", sentences[i],temperature_value,ingredients_list[i],time_list[i],method_list[i],tools_list[i])
             self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)
