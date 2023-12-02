@@ -34,12 +34,15 @@ class Ingredient:
         self.remaining_quantity=new_quantity
 
     def update_unit(self,new_unit: str) -> None:
+        self.string = self.string.replace(self.unit, new_unit)
         self.unit=new_unit
 
     def update_name(self,new_name: str) -> None:
+        self.string = self.string.replace(self.name, new_name)
         self.name=new_name
 
     def update_preparation(self,new_preparation: str) -> None:
+        self.string = self.string.replace(self.preparation, new_preparation)
         self.preparation=new_preparation       
         
     def extract_quantity(self, ingredient: Tag) -> Tuple[float, str]:
@@ -97,7 +100,7 @@ class Ingredient:
         return f"quantity: {self.quantity}, unit: {self.unit}, name: {self.name}, preparation: {self.preparation}"
     
     def __str__(self) -> str:
-        return self.string
+        return self.string + " " + f"(quantity: {self.quantity}, unit: {self.unit}, name: {self.name}, preparation: {self.preparation})"
 
 
 def parse_ingredients(raw_ingredients: List[Tag]) -> List[Ingredient]:

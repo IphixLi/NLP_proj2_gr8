@@ -18,13 +18,13 @@ from spacy_helper import find_ingredient_index, find_num_index_list
 DefineTemp = Tuple[str, str] # (temperature, unit)
 DefineIngrdnt = str
 DefineTime = Tuple[float, float, str]   # (lower, higher, unit)
-DefineMethod = str
+DefineMethod = Tuple[List[str], List[str]] # (verbs, prime)
 DefineTool = str
 
 TemperatureType = Union[DefineTemp, None]
 IngredientsType = Union[List[DefineIngrdnt], None]
 TimeType = Union[DefineTime, None]
-MethodsType = Union[List[DefineMethod], None]
+MethodsType = DefineMethod
 ToolsType = Union[List[DefineTool], None]
 from sentence_helper import celsius_to_fahren
 
@@ -130,7 +130,11 @@ def time_to_str(time: TimeType) -> str:
             return f"{low} to {high} {unit}"
 
 def to_method(sentences: List[str]) -> List[MethodsType]:
-    return findMethod(sentences)
+    prime, verbs = findMethod(sentences)
+    method_res = []
+    for i in range(len(sentences)):
+        method_res.append((prime[i], verbs[i]))
+    return method_res
 
 def to_tools(sentences: List[str]) -> List[ToolsType]:
     return findTool(sentences)
@@ -145,13 +149,15 @@ def collect_tools(tools_list: List[ToolsType]) -> List[DefineTool]:
             all_tools.extend(tools)
     return list(set(all_tools))
 
-def collect_methods(method_list: List[MethodsType]) -> List[DefineMethod]:
+def collect_methods(method_list: List[MethodsType]) -> MethodsType:
     """Collects all methods from a list of methods."""
-    all_methods = []
+    prime = []
+    verbs = []
     for methods in method_list:
         if methods is not None:
-            all_methods.extend(methods)
-    return list(set(all_methods))
+            prime.extend(methods[0])
+            verbs.extend(methods[1])
+    return list(set(prime)), list(set(verbs))
 
 class Action:
     def __init__(self, sentence: str, temperature: TemperatureType, ingredients: IngredientsType, time: TimeType,
@@ -162,7 +168,7 @@ class Action:
         self.time = time
         self.method = method
         self.tools = tools
-        self.ingredients_info = self.find_all_ingredients_info(ingredients)   # dictionary of (ingredient, info_str) pairs
+        self.ingredients_info = self.find_all_ingredients_info(ingredients)   # dictionary of (ingredient, (info_str, num_index, i_index)) pairs
     
     def get_time_str(self) -> str:
         return time_to_str(self.time)
@@ -172,10 +178,10 @@ class Action:
     
     def get_ingredients_info_str(self, ingredient_name: str) -> str:
         # requires: ingredient_name should be spelled correctly
-        return self.ingredients_info.get(ingredient_name, "")
+        return self.ingredients_info.get(ingredient_name, (""))[0]
 
-    def find_all_ingredients_info(self, ingredient_names: List[str]) -> Dict[str, str]:
-        """Return a dictionary of (ingredient, info_str) pairs."""
+    def find_all_ingredients_info(self, ingredient_names: List[str]) -> Dict[str, Tuple[str, int, int]]:
+        """Return a dictionary of (ingredient, (info_str, num_index, i_index)) pairs."""
         imperative_sentence = imperative_to_normal(self.sentence)
         doc = spacy_model(imperative_sentence)
         
@@ -209,7 +215,7 @@ class Action:
                 i_ptr += 1
             else:
                 info_str = doc[num_index:i_index+1].text
-                result_dict[sorted_i_index_list[i_ptr][0]] = info_str
+                result_dict[sorted_i_index_list[i_ptr][0]] = (info_str, num_index, i_index)
                 num_ptr += 1
         return result_dict
         
@@ -247,7 +253,7 @@ def parse_tools(step_list: List[Step]) -> List[DefineTool]:
     tools_list = [step.tools for step in step_list]
     return collect_tools(tools_list)
 
-def parse_methods(step_list: List[Step]) -> List[DefineMethod]:
+def parse_methods(step_list: List[Step]) -> MethodsType:
     method_list = [step.methods for step in step_list]
     return collect_methods(method_list)
         

@@ -24,8 +24,9 @@ class Recipe:
 
         self.tools = parse_tools(self.steps)
         self.methods = parse_methods(self.steps)
+        self.prime, self.verbs = self.methods
         self.num_actions = sum([len(sentences) for sentences in sentences_list])
-        self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
+        self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()   
     
     def transform(self, new_sentences_list: List[List[str]], new_ingredients: List[Ingredient]) -> None:
         self.sentences_list = new_sentences_list
@@ -35,6 +36,7 @@ class Recipe:
         
         self.tools = parse_tools(self.steps)
         self.methods = parse_methods(self.steps)
+        self.prime, self.verbs = self.methods
         self.num_actions = sum([len(sentences) for sentences in new_sentences_list])
         self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
         
@@ -43,7 +45,9 @@ class Recipe:
         print(f"Number of actions: {self.num_actions}")
         print(f"Ingredients: {', '.join(self.ingredients_names)}")
         print(f"Tools: {', '.join(self.tools)}")
-        print(f"Methods: {', '.join(self.methods)}")
+        print(f"Primary cooking method: {', '.join(self.prime)}")
+        print(f"Other cooking methods: {', '.join(self.verbs)}")
+        
         print(self.action_idx_to_idx_tuple)
     
     def print_ingredients(self) -> None:
@@ -68,7 +72,8 @@ class Recipe:
         print(f"Ingredients: {', '.join(action.ingredients)}")
         if action.time:
             print(f"Time: {action.time}")
-        print(f"Method: {', '.join(action.method)}")
+        print(f"Primary cooking method: {', '.join(action.method[0])}")
+        print(f"Other cooking methods: {', '.join(action.method[1])}")
         print(f"Tools: {', '.join(action.tools)}")
     
     def get_action(self, action_index: int) -> Action:
@@ -89,12 +94,24 @@ if __name__ == "__main__":
     recipe = Recipe(url)
     recipe.list_actions() # check actions
     recipe.print_ingredients() # check ingredients
-    # recipe.print_abstract() # check methods and tools
+    recipe.print_abstract() # check methods and tools
     
     print()
     print()
-    new_sentences_list, new_ingredients = transform_quantity(recipe.sentences_list, recipe.ingredients, 0.5)
+    
+    # TODO: test transform here
+    # STEP 1: generate new sentences_list and ingredients_list
+    # two options: call transform_quantity on 1. the entire recipe object (you can access any data you want) or 2. on the sentences_list and ingredients_list
+    # (see the input type of both options in quantity_transformation.py)
+    # option 1
+    new_sentences_list, new_ingredients = transform_quantity(recipe, 0.5)
+    # option 2
+    # new_sentences_list, new_ingredients = transform_quantity(recipe.sentences_list, recipe.ingredients, 0.5)
+    
+    # STEP 2: use the new sentences_list and ingredients_list to create a new recipe object
     recipe.transform(new_sentences_list, new_ingredients)
+    
+    
     recipe.list_actions()
     recipe.print_ingredients()
-    # recipe.print_abstract()
+    recipe.print_abstract()

@@ -7,28 +7,71 @@ w2n = Word2Num(fuzzy_threshold=60)
 spacy_model = spacy.load("en_core_web_lg")
 
 from ingredient import Ingredient
+from step import Action, Step
+from sentence_helper import imperative_to_normal
 
-# TODO: check quantity update ratio in the main transformation function
-def transform_quantity(sentences_list: List[List[str]], ingredients_list: List[Ingredient], quantity_update_ratio: float) -> Tuple[List[List[str]], List[Ingredient]]:
+# option 2: def transform_quantity(sentences_list: List[List[str]], ingredients_list: List[Ingredient], quantity_update_ratio: float) -> Tuple[List[List[str]], List[Ingredient]]:
+def transform_quantity(recipe, quantity_update_ratio: float) -> Tuple[List[List[str]], List[Ingredient]]:
     """Modify the quantity of ingredients in the sentences_list and ingredients_list by a ratio."""
+    sentences_list = recipe.sentences_list  # List[List[str]]
+    ingredients_list = recipe.ingredients   # List[Ingredient]
+    
     if quantity_update_ratio == 1.0:
         return sentences_list, ingredients_list
     elif quantity_update_ratio < 0.0:
         raise ValueError("quantity_update_ratio should be greater than 0.0")
-    new_sentences_list = modify_quantity_sentences(sentences_list, quantity_update_ratio)
+    new_sentences_list = modify_quantity_steps(recipe.steps, quantity_update_ratio)
     new_ingredients_list = modify_quantity_ingredients(ingredients_list, quantity_update_ratio)
     return new_sentences_list, new_ingredients_list
 
+
 # List[list[str]] -> List[list[str]]
-def modify_quantity_sentences(sentences_list: List[List[str]], quantity_update_ratio: float) -> List[List[str]]:
+def modify_quantity_steps(step_list: List[Step], quantity_update_ratio: float) -> List[List[str]]:
     """Modify the quantity of ingredients in the sentences_list by a ratio."""
     new_sentences_list = []
-    for sentences in sentences_list:
+    for step in step_list:
         new_sentences = []
-        for sentence in sentences:
-            new_sentences.append(modify_quantity_sentence(sentence, quantity_update_ratio))
+        for action in step.actions:
+            new_sentences.append(modify_quantity_action(action, quantity_update_ratio))
         new_sentences_list.append(new_sentences)
     return new_sentences_list
+
+def modify_quantity_action(action: Action, quantity_update_ratio: float) -> str:
+    """Modify the quantity of ingredients in the sentence by a ratio (only update numbers related to ingredients)."""
+    doc = spacy_model(imperative_to_normal(action.sentence))
+    new_sentence = action.sentence
+    ingredients_info_list = list(action.ingredients_info.values()) # List of (info_str, num_index, i_index)
+    
+    if len(ingredients_info_list) == 0:
+        return new_sentence
+    
+    cur_info_idx = 0
+    token_index = 0
+    while token_index < len(doc) and cur_info_idx < len(ingredients_info_list):
+        if doc[token_index].pos_ != "NUM":
+            token_index += 1
+            continue
+        info_str, num_index, i_index = ingredients_info_list[cur_info_idx]
+        if token_index < num_index:
+            token_index += 1
+            continue
+        elif token_index > i_index:
+            cur_info_idx += 1
+            continue
+        else:
+            # check if there is a sequence of number tokens
+            token_index_end = token_index + 1
+            while token_index_end < len(doc) and doc[token_index_end].pos_ == "NUM":
+                token_index_end += 1
+            # parse quantity and update
+            quantity_str = doc[token_index:token_index_end + 1].text
+            new_quantity = parse_quantity(quantity_str) * quantity_update_ratio
+            new_quantity_str = quantity_to_str(new_quantity)
+            new_info_str = info_str.replace(quantity_str, new_quantity_str)
+            new_sentence = new_sentence.replace(info_str, new_info_str)
+            # move to next token
+            token_index = token_index_end + 1
+    return new_sentence
 
 # List[Ingredient] -> List[Ingredient]
 def modify_quantity_ingredients(ingredients_list: List[Ingredient], quantity_update_ratio: float) -> List[Ingredient]:
@@ -76,13 +119,3 @@ def quantity_to_str(quantity: float) -> str:
         return str(int(quantity))
     else:
         return str(quantity)
-
-def modify_quantity_sentence(sentence: str, quantity_update_ratio: float) -> str:
-    """Modify the quantity of ingredients in the sentence by a ratio."""
-    doc = spacy_model(sentence)
-    new_sentence = sentence
-    for token in doc:
-        if token.pos_ == "NUM":
-            new_quantity = parse_quantity(token.text) * quantity_update_ratio
-            new_sentence = new_sentence.replace(token.text, quantity_to_str(new_quantity))
-    return new_sentence
