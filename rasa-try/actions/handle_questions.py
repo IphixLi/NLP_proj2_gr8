@@ -76,7 +76,6 @@ def handle_fuzzy_what_questions(ingredients_names: IngredientsType, tools: Tools
         print("-------------------")
         for ingredient in ingredients_names:
             print(f"{ingredient}: {build_url_from_question(f'what is {ingredient}', use_google=True)}")
-        print()
     
     if tools is not None and len(tools) > 0:
         print()

@@ -9,6 +9,10 @@ nlu:
   examples: |
     - \d+(|st|nd|rd|th|-st|-nd|-rd|-th)
 
+- regex: ingredient
+  examples: |
+    - \b[a-zA-Z]+
+
 - intent: input_url
   examples: |
     - Here is the recipe link: [https://www.allrecipes.com/0](recipe_url)
@@ -155,6 +159,8 @@ nlu:
     - Go back and say that step again.
     - Can we revisit that last part?
     - Explain that step once more, please.
+    - Show me the current step.
+
 
 - intent: restart_instructions
   examples: |
@@ -201,6 +207,10 @@ nlu:
     - How much of [flour](ingredient) do I need?
     - How much [ham](ingredient) do I need?
     - How much [salt](ingredient) do I need?
+    - How many [eggs](ingredient) should I use?
+    - How many [onions](ingredient) are needed?
+    - How many [tomatoes](ingredient)?
+    - How many [salmon](ingredient) is necessary?
     - What temperature should I set?
     - How long do I [bake](cooking_technique)?
     - How long do I [cook](cooking_technique)?

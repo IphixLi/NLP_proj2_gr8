@@ -163,8 +163,11 @@ class ActionJumpToStep(Action):
         
         step_number = tracker.get_slot("step_index")
         if not step_number:
-            dispatcher.utter_message(text="Please provide the step number.")
-            return [SlotSet("step_index", None)]
+            latest_message = tracker.latest_message['text']
+            step_number = re.search(r'\d+', latest_message)
+            if not step_number:
+                dispatcher.utter_message(text="Please provide the step number.")
+                return [SlotSet("step_index", None)]
         
         print(step_number)
         match = re.search(r'\d+', step_number)
@@ -190,13 +193,15 @@ class ActionAskStepParameter(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:    
-        
-        latest_message = tracker.latest_message['text']
-        ingredient = tracker.get_slot("ingredient")
-        recipe = RecipeRasaStateMachine()
-        msg = recipe.ask_step_parameter(latest_message, ingredient)
-        dispatcher.utter_message(text=msg)
-        return []
+        try:
+            latest_message = tracker.latest_message['text']
+            ingredient = tracker.get_slot("ingredient")
+            recipe = RecipeRasaStateMachine()
+            msg = recipe.ask_step_parameter(latest_message, ingredient)
+            dispatcher.utter_message(text=msg)
+        except Exception as e:
+            dispatcher.utter_message(text=f"{e}")
+        return [SlotSet("ingredient", None)]
 
 #   - action_ask_vague_what
 class ActionAskVagueWhat(Action):
@@ -206,11 +211,13 @@ class ActionAskVagueWhat(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:    
-        
-        dispatcher.utter_message(text="Answering vague 'what' question...")
-        recipe = RecipeRasaStateMachine()
-        msg = recipe.ask_vague_what()
-        dispatcher.utter_message(text=msg)
+        try:
+            dispatcher.utter_message(text="Answering vague 'what' question...")
+            recipe = RecipeRasaStateMachine()
+            msg = recipe.ask_vague_what()
+            dispatcher.utter_message(text=msg)
+        except Exception as e:
+            dispatcher.utter_message(text=f"{e}")
         return []
 
 #   - action_ask_vague_how
@@ -221,11 +228,13 @@ class ActionAskVagueHow(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:    
-        
-        dispatcher.utter_message(text="Answering vague 'how to' question...")
-        recipe = RecipeRasaStateMachine()
-        msg = recipe.ask_vague_how()
-        dispatcher.utter_message(text=msg)
+        try:
+            dispatcher.utter_message(text="Answering vague 'how to' question...")
+            recipe = RecipeRasaStateMachine()
+            msg = recipe.ask_vague_how()
+            dispatcher.utter_message(text=msg)
+        except Exception as e:
+            dispatcher.utter_message(text=f"{e}")
         return []
 
 #   - action_ask_specific
@@ -236,12 +245,14 @@ class ActionAskSpecific(Action):
     def run(self, dispatcher: CollectingDispatcher,
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:    
-        
-        dispatcher.utter_message(text="Answering specific question...")
-        latest_message = tracker.latest_message['text']
-        recipe = RecipeRasaStateMachine()
-        msg = recipe.ask_specific(latest_message)
-        dispatcher.utter_message(text=msg)
+        try:
+            dispatcher.utter_message(text="Answering specific question...")
+            latest_message = tracker.latest_message['text']
+            recipe = RecipeRasaStateMachine()
+            msg = recipe.ask_specific(latest_message)
+            dispatcher.utter_message(text=msg)
+        except Exception as e:
+            dispatcher.utter_message(text=f"{e}")
         return []
 
 #   - action_help

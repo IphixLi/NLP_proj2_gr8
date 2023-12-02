@@ -3,3 +3,4 @@ rasa-try/rasa/*
 rasa-try/.rasa/*
 rasa-try/actions/__pycache__/*
 *.tar.gz
+spacy_test.ipynb

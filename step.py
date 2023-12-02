@@ -1,12 +1,15 @@
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Dict
 import re
 import spacy
 from fuzzywuzzy import process
 nlp = spacy.load("en_core_web_sm")
+spacy_model = spacy.load("en_core_web_lg")
 
 
 from ingredient import Ingredient
 from ToActionFuctions import findTool, findMethod
+from sentence_helper import imperative_to_normal
+from spacy_helper import find_ingredient_index, find_num_index_list
 
 # TODO: modify types (using self-defined types)
 DefineTemp = Tuple[str, str] # (temperature, unit)
@@ -159,6 +162,57 @@ class Action:
         self.time = time
         self.method = method
         self.tools = tools
+        self.ingredients_info = self.find_all_ingredients_info(ingredients)   # dictionary of (ingredient, info_str) pairs
+    
+    def get_time_str(self) -> str:
+        return time_to_str(self.time)
+    
+    def get_temperature_str(self) -> str:
+        return temperature_to_str(self.temperature)
+    
+    def get_ingredients_info_str(self, ingredient_name: str) -> str:
+        # requires: ingredient_name should be spelled correctly
+        return self.ingredients_info.get(ingredient_name, "")
+
+    def find_all_ingredients_info(self, ingredient_names: List[str]) -> Dict[str, str]:
+        """Return a dictionary of (ingredient, info_str) pairs."""
+        imperative_sentence = imperative_to_normal(self.sentence)
+        doc = spacy_model(imperative_sentence)
+        
+        # try to find all the ingredients index in the sentence
+        ingredients_index_dict = {}
+        for i in ingredient_names:
+            i_index = find_ingredient_index(doc, i)
+            if i_index != -1:
+                ingredients_index_dict[i] = i_index
+        
+        if len(ingredients_index_dict) == 0:
+            return {}
+        
+        # num_index_list is ascending order
+        num_index_list = find_num_index_list(doc)
+        if len(num_index_list) == 0:
+            return {}
+
+        # also in ascending order [(ingredient, index)]
+        sorted_i_index_list = sorted(ingredients_index_dict.items(), key=lambda item: item[1])
+        
+        # move two pointers to find (num, ingredient) pair (num_index < i_index and num_index is the closest, num_index is used once)
+        i_ptr = 0
+        num_ptr = 0
+        result_dict = {}
+        while i_ptr < len(sorted_i_index_list) and num_ptr < len(num_index_list):
+            i_index = sorted_i_index_list[i_ptr][1]
+            num_index = num_index_list[num_ptr]
+            
+            if i_index < num_index:
+                i_ptr += 1
+            else:
+                info_str = doc[num_index:i_index+1].text
+                result_dict[sorted_i_index_list[i_ptr][0]] = info_str
+                num_ptr += 1
+        return result_dict
+        
 
 class Step:
     def __init__(self, sentences: List[str], ingredients_names: List[str]) -> None:

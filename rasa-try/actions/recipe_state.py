@@ -25,7 +25,8 @@ class RecipeRasaStateMachine:
     def reset(self) -> None:
         self.state = RasaState.INPUT_URL
         self.recipe = None
-        self.current_action = -1
+        self.current_action = 0
+        self.start_instructions = False
         self.url = ""
     
     def set_url(self, url: str) -> None:
@@ -47,7 +48,6 @@ class RecipeRasaStateMachine:
     
     def parse_recipe(self) -> str:
         try:
-            print(self.url)
             self.recipe = Recipe(self.url)
             return f"Successfully parsed recipe {self.recipe.recipe_name}."
         except Exception as e:
@@ -85,7 +85,10 @@ class RecipeRasaStateMachine:
         self.check_recipe()
         
         try:
-            self.set_action(self.current_action + 1)
+            if self.start_instructions:
+                self.set_action(self.current_action + 1)
+            else:
+                self.start_instructions = True
             msg = f"Step {self.current_action + 1} / {self.recipe.num_actions} of the recipe:"
             msg += "\n-------------------\n"
             msg += self.recipe.get_action_info(self.current_action)
@@ -102,6 +105,7 @@ class RecipeRasaStateMachine:
             msg = f"Step {self.current_action + 1} / {self.recipe.num_actions} of the recipe:"
             msg += "\n-------------------\n"
             msg += self.recipe.get_action_info(self.current_action)
+            self.start_instructions = True
             return msg
         except:
             return "You've reached the beginning of the recipe."
@@ -110,6 +114,7 @@ class RecipeRasaStateMachine:
         # check if recipe is loaded
         self.check_recipe()
         
+        self.start_instructions = True
         msg = f"Step {self.current_action + 1} / {self.recipe.num_actions} of the recipe:"
         msg += "\n-------------------\n"
         msg += self.recipe.get_action_info(self.current_action)
@@ -119,6 +124,7 @@ class RecipeRasaStateMachine:
         # check if recipe is loaded
         self.check_recipe()
         
+        self.start_instructions = True
         self.set_action(0)
         msg = f"Step {self.current_action + 1} / {self.recipe.num_actions} of the recipe:"
         msg += "\n-------------------\n"
@@ -131,6 +137,7 @@ class RecipeRasaStateMachine:
         
         try:
             self.set_action(step - 1)
+            self.start_instructions = True
             msg = f"Step {self.current_action + 1} / {self.recipe.num_actions} of the recipe:"
             msg += "\n-------------------\n"
             msg += self.recipe.get_action_info(self.current_action)
@@ -139,12 +146,12 @@ class RecipeRasaStateMachine:
             print(e)
             raise Exception(f"Invalid step number: {step}. Please enter a number between 1 and {self.recipe.num_actions}.")
     
-    def ask_step_parameter(self, question: str, ingredient = "") -> str:
+    def ask_step_parameter(self, question: str, ingredient_name = "") -> str:
         # check if recipe is loaded
         self.check_recipe()
         
         action = self.recipe.get_action(self.current_action)
-        question = question.lower()
+        question = question.lower() + " "
         
         msg = ""
         if "how long" in question or "when" in question:
@@ -161,14 +168,40 @@ class RecipeRasaStateMachine:
                 msg += f"The temperature for this step is {temperature_str}.\n"
             else:
                 msg += "Sorry, I can't find the temperature information for this step.\n"
-        elif ingredient:
+        elif ingredient_name or "how much " in question or "how many " in question:
             msg += "Fetching ingredient information...\n"
+            if not ingredient_name:
+                if "how much" in question:
+                    ingredient_name = question.split("how much ")[1]
+                else:
+                    ingredient_name = question.split("how many ")[1]
+                if " of " in ingredient_name:
+                    ingredient_name = ingredient_name.split(" of ")[0] + " " + ingredient_name.split(" of ")[1]
+                possible_trailing_words = [" do ", " does ", " is ", " are ", " should ", " in "]
+                for word in possible_trailing_words:
+                    if word in ingredient_name:
+                        ingredient_name = ingredient_name.split(word)[0]
+                        break
+                ingredient_name = ingredient_name.strip()
+            if not ingredient_name:
+                msg += "Sorry, I can't understand your ingredient question. Please specify an ingredient name.\n"
+                return msg
+            ingredient = None
             for ingdt_candidate in self.recipe.ingredients:
-                if ingdt_candidate.is_same_ingredient(ingredient):
-                    msg += f"{ingredient} requires {ingdt_candidate.quantity} {ingdt_candidate.unit}"
+                if ingdt_candidate.is_same_ingredient(ingredient_name):
+                    ingredient = ingdt_candidate
                     break
+            if not ingredient:
+                msg += f"Sorry, I can't find the ingredient '{ingredient_name}'.\n"
+            else:
+                ingredient_str = action.get_ingredients_info_str(ingredient.name)
+                if ingredient_str:
+                    msg += f"You need {ingredient_str} in this step."
+                else:
+                    msg += f"There is probably no specific information available about '{ingredient_name}' in this particular step. "
+                    msg += f"However, I find related information in the ingredients list: {ingredient}."
         else:
-            msg += "Sorry, I can't understand your parameter-related question. Available parameters: time, temperature, ingredient."
+            msg += "Sorry, I can't understand your parameter-related question. Available parameters: time, temperature, ingredient (specify ingredient name).\n"
         return msg
     
     def ask_vague_what(self) -> str:
