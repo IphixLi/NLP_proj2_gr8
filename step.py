@@ -93,7 +93,7 @@ def to_ingredients(sentences: List[str], ingredients:List[str]):
                     match, score = process.extractOne(str(potential), ingredients)
                     if score >= 80:
                         sentence_match.append(match)
-                        val=str(potential).strip()
+                        val=str(potential).replace(",","").replace(".","").strip()
                         match_mappings[val]=match
             except TypeError:
                 pass
