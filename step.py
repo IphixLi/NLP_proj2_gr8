@@ -161,6 +161,7 @@ def collect_methods(method_list: List[MethodsType]) -> MethodsType:
             prime.extend(methods[0])
             verbs.extend(methods[1])
 
+    return list(set(prime)), list(set(verbs))
     return list(list(prime)), list(set(verbs))
 
 class Action:
@@ -182,7 +183,7 @@ class Action:
     
     def get_ingredients_info_str(self, ingredient_name: str) -> str:
         # requires: ingredient_name should be spelled correctly
-        return self.ingredients_info.get(ingredient_name, (""))[0]
+        return self.ingredients_info.get(ingredient_name, ("", ""))[0]
 
     def find_all_ingredients_info(self, ingredient_names: List[str]) -> Dict[str, Tuple[str, int, int]]:
         """Return a dictionary of (ingredient, (info_str, num_index, i_index)) pairs."""
@@ -233,6 +234,7 @@ class Step:
         
         time_list = to_time(sentences)
         method_list = to_method(sentences)
+        method_list = to_method(sentences)
         tools_list = to_tools(sentences)
 
         # transformed=transform_ingredient_list(ingredients_list,"healthy")
@@ -245,6 +247,8 @@ class Step:
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)
         self.methods = collect_methods(method_list)
+        self.sentences = sentences
+        self.ingredients_names = ingredients_names
 
 def parse_original_ingredients(sentences_list: List[List[str]], ingredients_names: List[str]) -> List[Step]:
     result = {}

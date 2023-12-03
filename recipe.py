@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # STEP 1: generate new sentences_list and ingredients_list
     # two options: call transform_quantity on 1. the entire recipe object (you can access any data you want) or 2. on the sentences_list and ingredients_list
     # (see the input type of both options in quantity_transformation.py)
-    # option 1
+    # option 1 (use deepcopy!)
     new_sentences_list, new_ingredients = transform_quantity(recipe, 0.5)
     # option 2
     # new_sentences_list, new_ingredients = transform_quantity(recipe.sentences_list, recipe.ingredients, 0.5)
