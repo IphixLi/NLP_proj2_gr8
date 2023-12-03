@@ -162,7 +162,7 @@ def collect_methods(method_list: List[MethodsType]) -> MethodsType:
             prime.extend(methods[0])
             verbs.extend(methods[1])
 
-    return list(prime)), list(set(verbs)
+    return list(set(prime)), list(set(verbs))
 
 class Action:
     def __init__(self, sentence: str, temperature: TemperatureType, ingredients: IngredientsType, time: TimeType,
