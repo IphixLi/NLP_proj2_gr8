@@ -80,10 +80,12 @@ def temperature_to_str(temperature: TemperatureType) -> str:
 
 def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[IngredientsType]:
     matched_ingredients = []
+    match_mappings=[]
 
     for sentence in sentences:
         sentence_match=[]
         doc = nlp(sentence.lower())
+        current_mappings=[]
         # Extract noun phrases (potential ingredients)
         potential_ingredients = [token.text.strip() for token in doc if token.text.strip() and not token.is_stop]
         for potential in potential_ingredients:
@@ -92,12 +94,14 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
                     match, score = process.extractOne(str(potential), ingredients)
                     if score >= 80:
                         sentence_match.append(match)
+                        current_mappings.append([str(potential),match])
             except TypeError:
                 pass
         unique_matched_ingredients = list(set(sentence_match))
         matched_ingredients.append(unique_matched_ingredients)
+        match_mappings.append(current_mappings)
 
-    return matched_ingredients
+    return matched_ingredients, match_mappings
 
 def to_time(sentences: List[str]) -> List[TimeType]:
     times=[]
@@ -151,7 +155,8 @@ def collect_methods(method_list: List[MethodsType]) -> List[DefineMethod]:
     for methods in method_list:
         if methods is not None:
             all_methods.extend(methods)
-    return list(set(all_methods))
+
+    return list(all_methods)
 
 class Action:
     def __init__(self, sentence: str, temperature: TemperatureType, ingredients: IngredientsType, time: TimeType,
@@ -219,14 +224,16 @@ class Step:
         self.actions: List[Action] = []
         
         temperature_value = to_temperature(sentences)
-        ingredients_list = to_ingredients(sentences, ingredients_names)
+        ingredients_list, ingredients_mappings = to_ingredients(sentences, ingredients_names)
+        
         time_list = to_time(sentences)
-        method_list = to_method(sentences)
+        method_list = to_method(sentences)[1]
         tools_list = to_tools(sentences)
 
+        transformed=transform_ingredient_list(ingredients_list,"healthy")
         print("ingredient_list: ", ingredients_list)
-        print()
-        print("transformed: ",transform_ingredient_list(ingredients_list,"healthy"))
+        print("transformed: ",transformed)
+        print("transformed sentences: ",transform_sentence_list(transformed, ingredients_mappings, sentences,'healthy'))
 
         for i in range(len(sentences)):
             self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
