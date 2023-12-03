@@ -15,7 +15,11 @@ class State(Enum):
 class RecipeStateMachine:
     def __init__(self) -> None:
         self.state = State.INPUT_URL
+        # two recipe objects, first used for revert back to original recipe, second used for current recipe
+        # both initialized in input_url
+        self.original_recipe = None
         self.recipe = None
+        
         self.current_action = 0
         
         print("Welcome to the Recipe Parser!")
@@ -59,6 +63,7 @@ class RecipeStateMachine:
                 print()
                 print(f"Fetching recipe from {url}...")
                 self.recipe = Recipe(url)
+                self.original_recipe = Recipe(url)
                 self.state = State.ABSTRACT
                 return
             except Exception as e:

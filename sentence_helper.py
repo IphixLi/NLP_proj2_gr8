@@ -10,7 +10,7 @@ def add_punctuation(sentence: str) -> str:
         return sentence + "."
     else:
         return sentence
-    
+
 def imperative_to_normal(sentence: str) -> str:
     if sentence.endswith("."):
         return f"You {sentence[0].lower()}{sentence[1:]}"
