@@ -178,7 +178,7 @@ class Action:
     
     def get_ingredients_info_str(self, ingredient_name: str) -> str:
         # requires: ingredient_name should be spelled correctly
-        return self.ingredients_info.get(ingredient_name, (""))[0]
+        return self.ingredients_info.get(ingredient_name, ("", ""))[0]
 
     def find_all_ingredients_info(self, ingredient_names: List[str]) -> Dict[str, Tuple[str, int, int]]:
         """Return a dictionary of (ingredient, (info_str, num_index, i_index)) pairs."""

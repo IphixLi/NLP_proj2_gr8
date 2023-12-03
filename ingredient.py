@@ -97,10 +97,10 @@ class Ingredient:
             return name_text, ""
     
     def __repr__(self) -> str:
-        return f"quantity: {self.quantity}, unit: {self.unit}, name: {self.name}, preparation: {self.preparation}"
+        return f"quantity: {self.remaining_quantity}, unit: {self.unit}, name: {self.name}, preparation: {self.preparation if self.preparation else 'no preparation'}"
     
     def __str__(self) -> str:
-        return self.string + " " + f"(quantity: {self.quantity}, unit: {self.unit}, name: {self.name}, preparation: {self.preparation})"
+        return self.string + " " + f"(quantity: {self.remaining_quantity}, unit: {self.unit}, name: {self.name}, preparation: {self.preparation if self.preparation else 'no preparation'})"
 
 
 def parse_ingredients(raw_ingredients: List[Tag]) -> List[Ingredient]:

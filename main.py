@@ -1,16 +1,20 @@
 from enum import Enum
 from typing import Callable
+from copy import deepcopy
+from fractions import Fraction
 
 from recipe import Recipe
+from quantity_transformation import transform_quantity
 from handle_questions import is_vague_question, is_specific_question, handle_specific_question, handle_fuzzy_what_questions, handle_fuzzy_how_questions
 
 class State(Enum):
     QUIT = -1
     RESTART = 0
     INPUT_URL = 1
-    ABSTRACT = 2
-    ACTION = 3
-    FINISH = 4
+    TRANSFORM = 2
+    ABSTRACT = 3
+    ACTION = 4
+    FINISH = 5
     
 class RecipeStateMachine:
     def __init__(self) -> None:
@@ -19,7 +23,7 @@ class RecipeStateMachine:
         # both initialized in input_url
         self.original_recipe = None
         self.recipe = None
-        
+        self.current_transformations = self.get_original_transformations()
         self.current_action = 0
         
         print("Welcome to the Recipe Parser!")
@@ -37,6 +41,7 @@ class RecipeStateMachine:
         """Runs the current state and the transition to the next state."""
         state_actions = {
             State.INPUT_URL: self.input_url,
+            State.TRANSFORM: self.handle_transform,
             State.ABSTRACT: self.abstract,
             State.ACTION: self.action,
             State.FINISH: self.finish,
@@ -45,6 +50,8 @@ class RecipeStateMachine:
         state_action = state_actions.get(self.state, lambda: None)
         if state_action:
             state_action()
+        else:
+            raise ValueError(f"Invalid state: {self.state}")
     
     def input_url(self) -> None:
         """
@@ -63,7 +70,7 @@ class RecipeStateMachine:
                 print()
                 print(f"Fetching recipe from {url}...")
                 self.recipe = Recipe(url)
-                self.original_recipe = Recipe(url)
+                self.original_recipe = deepcopy(self.recipe)
                 self.state = State.ABSTRACT
                 return
             except Exception as e:
@@ -131,7 +138,6 @@ class RecipeStateMachine:
         except:
             print(f"Invalid input. Please enter 'j [number]' to jump to a specific step.")
             return False
-        
     
     def jump_to_restart(self) -> bool:
         """
@@ -160,8 +166,137 @@ class RecipeStateMachine:
         """
         self.state = State.ABSTRACT
         return True
+    
+    def jump_to_transform(self) -> bool:
+        """
+        Jump to the transform state. Returns True to confirm the jump.
+        """
+        self.state = State.TRANSFORM
+        return True
 
-
+    def help_transform(self) -> None:
+        print()
+        print("You are in the transform mode. What would you like to do next? All transformations are CUMULATIVE.")
+        print(" - Enter 'quant [scale factor]' to scale the recipe by a factor.")
+        print(" - Enter 'vegan' to make the recipe vegan.")
+        print(" - Enter 'healthy' to make the recipe healthy.")
+        print(" - Enter 'r' to revert back to the original recipe.")
+        print(" - Enter 'h' to see this help message again.")
+        print(" - Enter 'q' to quit transform mode. You can choose to save all the transformations to the recipe or not.")
+    
+    def confirm_transform(self) -> bool:
+        """
+        Asks the user to confirm the transformation. If user enters 'y', calls yes_handler and returns True. Otherwise, returns False.
+        """
+        print()
+        user_input = input("Are you sure you want to save the transformation to the recipe? (y/n): ").strip().lower()
+        if user_input == "y":
+            return True
+        else:
+            return False
+    
+    def back_to_abstract_or_repeat(self) -> None:
+        print()
+        print("Do you want to go back to the recipe overview or repeat the current step?")
+        print(" - Enter 'o' to go back to the recipe overview.")
+        print(" - Enter 'r' to resume the current step.")
+        user_input = input('Your choice (enter "o" or "r"): ').strip().lower()
+        if user_input == 'o':
+            self.jump_to_abstract()
+        else:
+            pass
+    
+    def get_original_transformations(self) -> dict:
+        return {
+            'quantity': 1.0,
+            'vegan': False,
+            'healthy': False,
+        }
+        
+    def handle_transform(self, ask_repeat=False) -> bool:
+        self.help_transform()
+        new_transformations = deepcopy(self.current_transformations)
+        
+        while True:
+            print()
+            user_input = input("[Transform mode] Your choice (enter 'h' for help): ").strip().lower()
+            if user_input == 'q':
+                break
+            elif user_input == 'h':
+                self.help_transform()
+            elif user_input.startswith('quant'):
+                try:
+                    scale_factor = float(Fraction(user_input.split()[1]))
+                    if scale_factor <= 0:
+                        print("Invalid scale factor. Scale factor must be greater than 0.")
+                    else:
+                        new_transformations['quantity'] *= scale_factor
+                        print(f"The recipe will be scaled by a factor of {new_transformations['quantity']} after quitting transform mode (compared with the original recipe).")
+                except:
+                    print("Invalid input. Please enter 'quant [scale factor]' to scale the recipe by a factor. Scale factor must be a number greater than 0.")
+            elif user_input == 'vegan':
+                if new_transformations['vegan']:
+                    if self.current_transformations['vegan']:
+                        print("The recipe is already vegan.")
+                    else:
+                        print("The new recipe (after transformation) is already vegan.")
+                else:
+                    new_transformations['vegan'] = True
+                    print("The recipe will be transformed to vegan after quitting transform mode.")
+            elif user_input == 'healthy':
+                if new_transformations['healthy']:
+                    if self.current_transformations['healthy']:
+                        print("The recipe is already healthy.")
+                    else:
+                        print("The new recipe (after transformation) is already healthy.")
+                else:
+                    new_transformations['healthy'] = True
+                    print("The recipe will be transformed to healthy after quitting transform mode.")
+            elif user_input == 'r':
+                new_transformations = self.get_original_transformations()
+                print("The recipe will be reverted back to the original recipe and later transformations will be based on the original recipe.")
+            else:
+                print(f"'{user_input}' is not a valid command. Enter 'h' for help.")
+        
+        if self.confirm_transform():
+            self.transform_recipe(new_transformations)
+            print("Transformations completed.")
+        if ask_repeat:
+            self.back_to_abstract_or_repeat()
+        else:
+            print("Will be back to the recipe overview.")
+            self.jump_to_abstract()
+        print("Quitting transform mode...")
+        print()
+        return True
+    
+    def transform_recipe(self, new_transformations: dict) -> None:
+        """
+        Transforms the recipe based on the given transformations.
+        """
+        # TODO: implement vegan and healthy transformations
+        # check if we need to revert back to the original recipe
+        print(f"Current recipe: {self.current_transformations}")
+        print(f"New recipe:     {new_transformations}")
+        cur_vegan = self.current_transformations['vegan']
+        cur_healthy = self.current_transformations['healthy']
+        new_vegan = new_transformations['vegan']
+        new_healthy = new_transformations['healthy']
+        if (cur_vegan and not new_vegan) or (cur_healthy and not new_healthy):
+            print("Reverting back to the original recipe...")
+            self.recipe = deepcopy(self.original_recipe)
+            self.current_transformations = self.get_original_transformations()
+        # transform the recipe by combining the current transformations and the new transformations
+        if new_vegan:
+            print("Transforming to vegan...")
+        if new_healthy:
+            print("Transforming to healthy...")
+        if new_transformations['quantity'] != self.current_transformations['quantity']:
+            print(f"Scaling quantity by {new_transformations['quantity']}...")
+            new_sentences_list, new_ingredients = transform_quantity(self.recipe, new_transformations['quantity'] / self.current_transformations['quantity'])
+            self.recipe.transform(new_sentences_list, new_ingredients)
+        self.current_transformations = new_transformations
+        
     def abstract(self) -> None:
         self.print_abstract()
         self.input_abstract()
@@ -183,6 +318,7 @@ class RecipeStateMachine:
         print(" - Enter 'i' to list the ingredients in detail.")
         print(" - Enter 's' to list all the steps.")
         print(" - Enter 'd' to start the directions.")
+        print(" - Enter 't' to transform the recipe.")
         print(" - Enter 'r' to restart with a new recipe.")
         print(" - Enter 'q' to quit.")
         print(" - Enter 'h' to see this help message again.")
@@ -200,6 +336,7 @@ class RecipeStateMachine:
                 'i': lambda: self.print_ingredients(),
                 's': lambda: self.list_actions(),
                 'd': lambda: self.jump_to_first_action(),
+                't': lambda: self.jump_to_transform(),
                 'r': lambda: self.confirm_input(self.jump_to_restart),
                 'q': lambda: self.confirm_input(self.jump_to_quit),
                 'h': lambda: self.help_abstract()
@@ -246,6 +383,7 @@ class RecipeStateMachine:
         print(" - Enter 'p' to go back to the previous step.")
         print(" - Enter 'rpt' to repeat the current step.")
         print(" - Enter 'query' to ask a question about the current step.")
+        print(" - Enter 't' to transform the recipe.")
         print(" - Enter 'i' to list the ingredients in detail.")
         print(" - Enter 'o' to list the overview of the recipe.")
         print(" - Enter 'd' to restart the directions.")
@@ -266,6 +404,7 @@ class RecipeStateMachine:
             input_actions = {
                 'n': lambda: self.jump_to_next_action(),
                 'p': lambda: self.jump_to_prev_action(),
+                't': lambda: self.handle_transform(ask_repeat=True),
                 'i': lambda: self.print_ingredients(),
                 'o': lambda: self.print_abstract(),
                 'd': lambda: self.jump_to_first_action(),
@@ -289,7 +428,7 @@ class RecipeStateMachine:
     
     def help_query(self) -> None:
         """
-        Gives the user options for what to do next after printing the ingredients.
+        Gives the user options for what to do next in query mode.
         """
         print()
         print("You are in the query mode. What would you like to do next?")
@@ -392,6 +531,7 @@ class RecipeStateMachine:
         print("You just finish the recipe. What would you like to do next?")
         print(" - Enter 'r' to start with a new recipe.")
         print(" - Enter 'i' to list the ingredients in detail.")
+        print(" - Enter 't' to transform the recipe.")
         print(" - Enter 'o' to list the overview of the recipe.")
         print(" - Enter 'd' to restart the directions.")
         print(" - Enter 'j [number]' to jump to a specific step.")
@@ -406,6 +546,7 @@ class RecipeStateMachine:
             
             input_actions = {
                 'i': lambda: self.print_ingredients(),
+                't': lambda: self.jump_to_transform(),
                 'o': lambda: self.print_abstract(),
                 'd': lambda: self.jump_to_first_action(),
                 'r': lambda: self.confirm_input(self.jump_to_restart),
@@ -428,7 +569,9 @@ class RecipeStateMachine:
     def restart(self) -> None:
         """Restarts the state machine."""
         self.state = State.INPUT_URL
+        self.original_recipe = None
         self.recipe = None
+        self.current_transformations = {'quantity': 1,'vegan': False, 'healthy': False}
         self.current_action = 0
     
 

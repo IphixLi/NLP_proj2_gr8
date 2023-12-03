@@ -2,6 +2,7 @@ from typing import List, Tuple
 from unicodedata import numeric
 from fractions import Fraction
 from word2num import Word2Num
+from copy import deepcopy
 import spacy
 w2n = Word2Num(fuzzy_threshold=60)
 spacy_model = spacy.load("en_core_web_lg")
@@ -13,8 +14,8 @@ from sentence_helper import imperative_to_normal
 # option 2: def transform_quantity(sentences_list: List[List[str]], ingredients_list: List[Ingredient], quantity_update_ratio: float) -> Tuple[List[List[str]], List[Ingredient]]:
 def transform_quantity(recipe, quantity_update_ratio: float) -> Tuple[List[List[str]], List[Ingredient]]:
     """Modify the quantity of ingredients in the sentences_list and ingredients_list by a ratio."""
-    sentences_list = recipe.sentences_list  # List[List[str]]
-    ingredients_list = recipe.ingredients   # List[Ingredient]
+    sentences_list = deepcopy(recipe.sentences_list)  # List[List[str]]
+    ingredients_list = deepcopy(recipe.ingredients)  # List[Ingredient]
     
     if quantity_update_ratio == 1.0:
         return sentences_list, ingredients_list
@@ -38,6 +39,9 @@ def modify_quantity_steps(step_list: List[Step], quantity_update_ratio: float) -
 
 def modify_quantity_action(action: Action, quantity_update_ratio: float) -> str:
     """Modify the quantity of ingredients in the sentence by a ratio (only update numbers related to ingredients)."""
+    if "each" in action.sentence:
+        return action.sentence
+    
     doc = spacy_model(imperative_to_normal(action.sentence))
     new_sentence = action.sentence
     ingredients_info_list = list(action.ingredients_info.values()) # List of (info_str, num_index, i_index)
@@ -64,8 +68,9 @@ def modify_quantity_action(action: Action, quantity_update_ratio: float) -> str:
             while token_index_end < len(doc) and doc[token_index_end].pos_ == "NUM":
                 token_index_end += 1
             # parse quantity and update
-            quantity_str = doc[token_index:token_index_end + 1].text
+            quantity_str = doc[token_index:token_index_end].text
             new_quantity = parse_quantity(quantity_str) * quantity_update_ratio
+            print(f"quantity_str: {quantity_str}, new_quantity: {new_quantity}, quantity_update_ratio: {quantity_update_ratio}")
             new_quantity_str = quantity_to_str(new_quantity)
             new_info_str = info_str.replace(quantity_str, new_quantity_str)
             new_sentence = new_sentence.replace(info_str, new_info_str)
@@ -78,7 +83,7 @@ def modify_quantity_ingredients(ingredients_list: List[Ingredient], quantity_upd
     """Modify the quantity of ingredients in the ingredients_list by a ratio."""
     new_ingredients_list = []
     for ingredient in ingredients_list:
-        new_ingredient = ingredient
+        new_ingredient = deepcopy(ingredient)
         new_ingredient.update_remaining_quantity(ingredient.remaining_quantity * quantity_update_ratio)
         new_ingredients_list.append(new_ingredient)
     return new_ingredients_list
