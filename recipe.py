@@ -30,7 +30,7 @@ class Recipe:
         self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
         self.modification=None
     
-    def transform(self, new_sentences_list: List[List[str]], new_ingredients: List[Ingredient],modification:str='none') -> None:
+    def transform(self, new_sentences_list: List[List[str]], new_ingredients: List[Ingredient], modification:str='') -> None:
         self.sentences_list = new_sentences_list
         self.ingredients = new_ingredients
         self.ingredients_names = get_ingredients_names(self.ingredients)
@@ -41,14 +41,18 @@ class Recipe:
         self.prime, self.verbs = self.methods
         self.num_actions = sum([len(sentences) for sentences in new_sentences_list])
         self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
-        if modification!='none':
-            if self.modification:
-                recipe_name=self.recipe_name.split(" (")[0]
-            else:
-                recipe_name=self.recipe_name
-
+        
+        if self.modification:
+            recipe_name=self.recipe_name.split(" (")[0]
+        else:
+            recipe_name=self.recipe_name
+            
+        if modification:
             self.modification=modification
-            self.recipe_name=recipe_name+' ( '+modification + ' )'
+            self.recipe_name=recipe_name + ' ( ' + modification + ' )'
+        else:
+            self.modification=''
+            self.recipe_name=recipe_name
         
     def print_abstract(self) -> None:
         print(f"Recipe name: {self.recipe_name}")
@@ -57,8 +61,6 @@ class Recipe:
         print(f"Tools: {', '.join(self.tools)}")
         print(f"Primary cooking method: {', '.join(self.prime)}")
         print(f"Other cooking methods: {', '.join(self.verbs)}")
-        
-        print(self.action_idx_to_idx_tuple)
     
     def print_ingredients(self) -> None:
         for ingredient in self.ingredients:

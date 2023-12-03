@@ -2,10 +2,12 @@ from enum import Enum
 from typing import Callable
 from copy import deepcopy
 from fractions import Fraction
+import logging
+logging.getLogger().setLevel(logging.ERROR)
 
 from recipe import Recipe
 from quantity_transformation import transform_quantity
-from transformation import transform_healthy_or_vegan
+from transformation import transform_recipe_type
 from handle_questions import is_vague_question, is_specific_question, handle_specific_question, handle_fuzzy_what_questions, handle_fuzzy_how_questions
 
 class State(Enum):
@@ -217,6 +219,7 @@ class RecipeStateMachine:
     def handle_transform(self, ask_repeat=False) -> bool:
         self.help_transform()
         new_transformations = deepcopy(self.current_transformations)
+        use_revert = False
         
         while True:
             print()
@@ -237,7 +240,7 @@ class RecipeStateMachine:
                     print("Invalid input. Please enter 'quant [scale factor]' to scale the recipe by a factor. Scale factor must be a number greater than 0.")
             elif user_input == 'vegan':
                 if new_transformations['vegan']:
-                    if self.current_transformations['vegan']:
+                    if self.current_transformations['vegan'] and not use_revert:
                         print("The recipe is already vegan.")
                     else:
                         print("The new recipe (after transformation) is already vegan.")
@@ -246,7 +249,7 @@ class RecipeStateMachine:
                     print("The recipe will be transformed to vegan after quitting transform mode.")
             elif user_input == 'healthy':
                 if new_transformations['healthy']:
-                    if self.current_transformations['healthy']:
+                    if self.current_transformations['healthy'] and not use_revert:
                         print("The recipe is already healthy.")
                     else:
                         print("The new recipe (after transformation) is already healthy.")
@@ -255,6 +258,7 @@ class RecipeStateMachine:
                     print("The recipe will be transformed to healthy after quitting transform mode.")
             elif user_input == 'r':
                 new_transformations = self.get_original_transformations()
+                use_revert = True
                 print("The recipe will be reverted back to the original recipe and later transformations will be based on the original recipe.")
             else:
                 print(f"'{user_input}' is not a valid command. Enter 'h' for help.")
@@ -270,6 +274,22 @@ class RecipeStateMachine:
         print("Quitting transform mode...")
         print()
         return True
+    
+    def get_modification_str(self, new_transformations: dict) -> str:
+        """
+        Returns a string that describes the modifications made to the recipe.
+        """
+        modification_list = []
+        if new_transformations['quantity'] != 1.0:
+            modification_list.append(f"{new_transformations['quantity']}x")
+        if new_transformations['vegan']:
+            modification_list.append("vegan")
+        if new_transformations['healthy']:
+            modification_list.append("healthy")
+        if modification_list:
+            return f"{'+'.join(modification_list)}"
+        return ""
+        
     
     def transform_recipe(self, new_transformations: dict) -> None:
         """
@@ -290,16 +310,16 @@ class RecipeStateMachine:
         # transform the recipe by combining the current transformations and the new transformations
         if new_vegan:
             print("Transforming to vegan...")
-            new_sentences_list, new_ingredients = transform_healthy_or_vegan(self.recipe, transformation_type="vegan")
-            self.recipe.transform(new_sentences_list, new_ingredients)
+            new_sentences_list_type, new_ingredients_type = transform_recipe_type(self.recipe, 'vegan')
+            self.recipe.transform(new_sentences_list_type, new_ingredients_type, modification=self.get_modification_str(new_transformations))
         if new_healthy:
             print("Transforming to healthy...")
-            new_sentences_list, new_ingredients = transform_healthy_or_vegan(self.recipe, transformation_type="healthy")
-            self.recipe.transform(new_sentences_list, new_ingredients)
+            new_sentences_list_type, new_ingredients_type = transform_recipe_type(self.recipe, 'healthy')
+            self.recipe.transform(new_sentences_list_type, new_ingredients_type, modification=self.get_modification_str(new_transformations))
         if new_transformations['quantity'] != self.current_transformations['quantity']:
             print(f"Scaling quantity by {new_transformations['quantity']}...")
             new_sentences_list, new_ingredients = transform_quantity(self.recipe, new_transformations['quantity'] / self.current_transformations['quantity'])
-            self.recipe.transform(new_sentences_list, new_ingredients)
+            self.recipe.transform(new_sentences_list, new_ingredients, modification=self.get_modification_str(new_transformations))
         self.current_transformations = new_transformations
         
     def abstract(self) -> None:

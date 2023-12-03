@@ -7,57 +7,57 @@ from step import parse_original_ingredients
 from typing import List, Tuple
 from copy import deepcopy
 from fuzzywuzzy import process
-import spacy
-nlp = spacy.load("en_core_web_sm")
+# import spacy
+# nlp = spacy.load("en_core_web_sm")
 
 from ingredient import Ingredient
 
-def to_ingredients(sentences: List[str], ingredients:List[str]):
-    matched_ingredients = []
-    match_mappings=[]
+# def to_ingredients(sentences: List[str], ingredients:List[str]):
+#     matched_ingredients = []
+#     match_mappings=[]
 
-    for sentence in sentences:
-        sentence_match=[]
-        doc = nlp(sentence.lower())
-        current_mappings=[]
-        # Extract noun phrases (potential ingredients)
-        potential_ingredients = [token.text.strip() for token in doc if token.text.strip() and not token.is_stop]
-        for potential in potential_ingredients:
-            try:
-                if str(potential).strip():
-                    match, score = process.extractOne(str(potential), ingredients)
-                    if score >= 80:
-                        sentence_match.append(match)
-                        current_mappings.append([str(potential),match])
-            except TypeError:
-                pass
-        unique_matched_ingredients = list(set(sentence_match))
-        matched_ingredients.append(unique_matched_ingredients)
-        match_mappings.append(current_mappings)
+#     for sentence in sentences:
+#         sentence_match=[]
+#         doc = nlp(sentence.lower())
+#         current_mappings=[]
+#         # Extract noun phrases (potential ingredients)
+#         potential_ingredients = [token.text.strip() for token in doc if token.text.strip() and not token.is_stop]
+#         for potential in potential_ingredients:
+#             try:
+#                 if str(potential).strip():
+#                     match, score = process.extractOne(str(potential), ingredients)
+#                     if score >= 80:
+#                         sentence_match.append(match)
+#                         current_mappings.append([str(potential),match])
+#             except TypeError:
+#                 pass
+#         unique_matched_ingredients = list(set(sentence_match))
+#         matched_ingredients.append(unique_matched_ingredients)
+#         match_mappings.append(current_mappings)
 
-    return matched_ingredients, match_mappings
+#     return matched_ingredients, match_mappings
 
-def transform_healthy_or_vegan(recipe, transformation_type="healthy") -> Tuple[List[List[str]], List[Ingredient]]:
-    # transform ingredients if it's unhealthy
-    transformation_dict = transformations[transformation_type]
-    new_ingredients_list = deepcopy(recipe.ingredients)
-    for ingredient in new_ingredients_list:
-        matching_ingredient = transform_ingredient(ingredient.name, transformation_dict)
-        if matching_ingredient != ingredient.name:
-            ingredient.update_name(matching_ingredient)
+# def transform_healthy_or_vegan(recipe, transformation_type="healthy") -> Tuple[List[List[str]], List[Ingredient]]:
+#     # transform ingredients if it's unhealthy
+#     transformation_dict = transformations[transformation_type]
+#     new_ingredients_list = deepcopy(recipe.ingredients)
+#     for ingredient in new_ingredients_list:
+#         matching_ingredient = transform_ingredient(ingredient.name, transformation_dict)
+#         if matching_ingredient != ingredient.name:
+#             ingredient.update_name(matching_ingredient)
     
-    # transform sentences if it includes unhealthy ingredients
-    new_sentences_list = []
-    for step in recipe.steps:
-        ingredients_list, ingredients_mappings = to_ingredients(step.sentences, step.ingredients_names)
-        transformed_ingredients = transform_ingredient_list(ingredients_list, transformation_type)
-        new_sentences = transform_sentence_list(transformed_ingredients, ingredients_mappings, step.sentences, transformation_type)
-        new_sentences_list.append(new_sentences)
-    return new_sentences_list, new_ingredients_list
+#     # transform sentences if it includes unhealthy ingredients
+#     new_sentences_list = []
+#     for step in recipe.steps:
+#         ingredients_list, ingredients_mappings = to_ingredients(step.sentences, step.ingredients_names)
+#         transformed_ingredients = transform_ingredient_list(ingredients_list, transformation_type)
+#         new_sentences = transform_sentence_list(transformed_ingredients, ingredients_mappings, step.sentences, transformation_type)
+#         new_sentences_list.append(new_sentences)
+#     return new_sentences_list, new_ingredients_list
 
 def transform_recipe_type(recipe, transformation_type: str) -> Tuple[List[List[str]], List[Ingredient]]:
-    sentences_list = recipe.sentences_list  # List[List[str]]
-    ingredients_list = recipe.ingredients   # List[Ingredient]
+    sentences_list = deepcopy(recipe.sentences_list)  # List[List[str]]
+    ingredients_list = deepcopy(recipe.ingredients)   # List[Ingredient]
     ingredient_names= recipe.ingredients_names 
     transformation_dict=transformations[transformation_type]
 

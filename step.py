@@ -162,7 +162,6 @@ def collect_methods(method_list: List[MethodsType]) -> MethodsType:
             verbs.extend(methods[1])
 
     return list(set(prime)), list(set(verbs))
-    return list(list(prime)), list(set(verbs))
 
 class Action:
     def __init__(self, sentence: str, temperature: TemperatureType, ingredients: IngredientsType, time: TimeType,
@@ -233,7 +232,6 @@ class Step:
         ingredients_list, ingredients_mappings = to_ingredients(sentences, ingredients_names)
         
         time_list = to_time(sentences)
-        method_list = to_method(sentences)
         method_list = to_method(sentences)
         tools_list = to_tools(sentences)
 

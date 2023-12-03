@@ -70,7 +70,7 @@ def modify_quantity_action(action: Action, quantity_update_ratio: float) -> str:
             # parse quantity and update
             quantity_str = doc[token_index:token_index_end].text
             new_quantity = parse_quantity(quantity_str) * quantity_update_ratio
-            print(f"quantity_str: {quantity_str}, new_quantity: {new_quantity}, quantity_update_ratio: {quantity_update_ratio}")
+            # print(f"quantity_str: {quantity_str}, new_quantity: {new_quantity}, quantity_update_ratio: {quantity_update_ratio}")
             new_quantity_str = quantity_to_str(new_quantity)
             new_info_str = info_str.replace(quantity_str, new_quantity_str)
             new_sentence = new_sentence.replace(info_str, new_info_str)
