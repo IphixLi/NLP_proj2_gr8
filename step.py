@@ -233,7 +233,7 @@ class Step:
         ingredients_list, ingredients_mappings = to_ingredients(sentences, ingredients_names)
         
         time_list = to_time(sentences)
-        method_list = to_method(sentences)[1]
+        method_list = to_method(sentences)
         tools_list = to_tools(sentences)
 
         transformed=transform_ingredient_list(ingredients_list,"healthy")
@@ -246,6 +246,8 @@ class Step:
                                        method_list[i], tools_list[i]))
         self.tools = collect_tools(tools_list)
         self.methods = collect_methods(method_list)
+        self.sentences = sentences
+        self.ingredients_names = ingredients_names
 
 
 

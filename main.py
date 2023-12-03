@@ -5,6 +5,7 @@ from fractions import Fraction
 
 from recipe import Recipe
 from quantity_transformation import transform_quantity
+from transformation import transform_healthy_or_vegan
 from handle_questions import is_vague_question, is_specific_question, handle_specific_question, handle_fuzzy_what_questions, handle_fuzzy_how_questions
 
 class State(Enum):
@@ -289,8 +290,12 @@ class RecipeStateMachine:
         # transform the recipe by combining the current transformations and the new transformations
         if new_vegan:
             print("Transforming to vegan...")
+            new_sentences_list, new_ingredients = transform_healthy_or_vegan(self.recipe, transformation_type="vegan")
+            self.recipe.transform(new_sentences_list, new_ingredients)
         if new_healthy:
             print("Transforming to healthy...")
+            new_sentences_list, new_ingredients = transform_healthy_or_vegan(self.recipe, transformation_type="healthy")
+            self.recipe.transform(new_sentences_list, new_ingredients)
         if new_transformations['quantity'] != self.current_transformations['quantity']:
             print(f"Scaling quantity by {new_transformations['quantity']}...")
             new_sentences_list, new_ingredients = transform_quantity(self.recipe, new_transformations['quantity'] / self.current_transformations['quantity'])
@@ -347,7 +352,7 @@ class RecipeStateMachine:
                 if confirm:
                     return  
             else:
-                print("Invalid input. Please enter 'i' for ingredients, 'd' for directions, 'r' to restart, or 'q' to quit.")
+                print("Invalid input. Enter 'h' for help.")
     
     def list_actions(self) -> None:
         """
