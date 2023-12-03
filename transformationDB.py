@@ -157,7 +157,7 @@ transformations={
     'chilli powder': 'green chilli powder'
 }
 ,
-"vegetarian ": {
+"vegetarian": {
     "chicken bouillon": "vegetable bouillon",
     "beef bouillon": "vegetable bouillon",
     "pork bouillon": "vegetable bouillon",

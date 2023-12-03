@@ -6,7 +6,7 @@ nlp = spacy.load("en_core_web_sm")
 spacy_model = spacy.load("en_core_web_lg")
 import warnings
 warnings.filterwarnings("ignore")
-from transformation import *
+
 
 
 from ingredient import Ingredient
@@ -78,14 +78,13 @@ def temperature_to_str(temperature: TemperatureType) -> str:
         temp, unit = temperature
         return f"{temp} degrees {unit}"
 
-def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[IngredientsType]:
+def to_ingredients(sentences: List[str], ingredients:List[str]):
     matched_ingredients = []
-    match_mappings=[]
+    match_mappings={}
 
     for sentence in sentences:
         sentence_match=[]
         doc = nlp(sentence.lower())
-        current_mappings=[]
         # Extract noun phrases (potential ingredients)
         potential_ingredients = [token.text.strip() for token in doc if token.text.strip() and not token.is_stop]
         for potential in potential_ingredients:
@@ -94,12 +93,12 @@ def to_ingredients(sentences: List[str], ingredients:List[str]) -> List[Ingredie
                     match, score = process.extractOne(str(potential), ingredients)
                     if score >= 80:
                         sentence_match.append(match)
-                        current_mappings.append([str(potential),match])
+                        val=str(potential).strip()
+                        match_mappings[val]=match
             except TypeError:
                 pass
         unique_matched_ingredients = list(set(sentence_match))
         matched_ingredients.append(unique_matched_ingredients)
-        match_mappings.append(current_mappings)
 
     return matched_ingredients, match_mappings
 
@@ -162,7 +161,7 @@ def collect_methods(method_list: List[MethodsType]) -> MethodsType:
             prime.extend(methods[0])
             verbs.extend(methods[1])
 
-    return list(prime)), list(set(verbs)
+    return list(list(prime)), list(set(verbs))
 
 class Action:
     def __init__(self, sentence: str, temperature: TemperatureType, ingredients: IngredientsType, time: TimeType,
@@ -233,13 +232,13 @@ class Step:
         ingredients_list, ingredients_mappings = to_ingredients(sentences, ingredients_names)
         
         time_list = to_time(sentences)
-        method_list = to_method(sentences)[1]
+        method_list = to_method(sentences)
         tools_list = to_tools(sentences)
 
-        transformed=transform_ingredient_list(ingredients_list,"healthy")
-        print("ingredient_list: ", ingredients_list)
-        print("transformed: ",transformed)
-        print("transformed sentences: ",transform_sentence_list(transformed, ingredients_mappings, sentences,'healthy'))
+        # transformed=transform_ingredient_list(ingredients_list,"healthy")
+        # print("ingredient_list: ", ingredients_list)
+        # print("transformed: ",transformed)
+        # print("transformed sentences: ",transform_sentence_list(transformed, ingredients_mappings, sentences,'healthy'))
 
         for i in range(len(sentences)):
             self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
@@ -247,7 +246,13 @@ class Step:
         self.tools = collect_tools(tools_list)
         self.methods = collect_methods(method_list)
 
-
+def parse_original_ingredients(sentences_list: List[List[str]], ingredients_names: List[str]) -> List[Step]:
+    result = {}
+    for sentences in sentences_list:
+        ingredients=to_ingredients(sentences, ingredients_names)[1]
+        for key, value in ingredients.items():
+            result[key] = value
+    return result 
 
 def parse_steps(sentences_list: List[List[str]], ingredients_names: List[str]) -> List[Step]:
     steps = []

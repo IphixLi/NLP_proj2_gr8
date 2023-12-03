@@ -6,8 +6,9 @@ from web import get_soup_from_url, get_raw_ingredients_from_soup, get_raw_steps_
 from sentence_helper import raw_steps_to_list_sentences
 
 from ingredient import parse_ingredients, get_ingredients_names, Ingredient
-from step import parse_steps, parse_methods, parse_tools, Action
+from step import parse_steps,parse_original_ingredients, parse_methods, parse_tools, Action
 from quantity_transformation import transform_quantity
+from transformation import transform_recipe_type
 
 class Recipe:
     def __init__(self, url: str) -> None:
@@ -26,9 +27,10 @@ class Recipe:
         self.methods = parse_methods(self.steps)
         self.prime, self.verbs = self.methods
         self.num_actions = sum([len(sentences) for sentences in sentences_list])
-        self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()   
+        self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
+        self.modification=None
     
-    def transform(self, new_sentences_list: List[List[str]], new_ingredients: List[Ingredient]) -> None:
+    def transform(self, new_sentences_list: List[List[str]], new_ingredients: List[Ingredient],modification:str='none') -> None:
         self.sentences_list = new_sentences_list
         self.ingredients = new_ingredients
         self.ingredients_names = get_ingredients_names(self.ingredients)
@@ -39,6 +41,14 @@ class Recipe:
         self.prime, self.verbs = self.methods
         self.num_actions = sum([len(sentences) for sentences in new_sentences_list])
         self.action_idx_to_idx_tuple = self.make_idx_tuple_dict()
+        if modification!='none':
+            if self.modification:
+                recipe_name=self.recipe_name.split(" (")[0]
+            else:
+                recipe_name=self.recipe_name
+
+            self.modification=modification
+            self.recipe_name=recipe_name+' ( '+modification + ' )'
         
     def print_abstract(self) -> None:
         print(f"Recipe name: {self.recipe_name}")
@@ -88,9 +98,9 @@ class Recipe:
     
 if __name__ == "__main__":
     # url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
-    # url = "https://www.allrecipes.com/air-fryer-ham-and-cheese-wraps-recipe-8365118"
+    url = "https://www.allrecipes.com/air-fryer-ham-and-cheese-wraps-recipe-8365118"
     # url = "https://www.allrecipes.com/recipe/12151/banana-cream-pie-i/"
-    url = "https://www.allrecipes.com/recipe/217331/goan-pork-vindaloo/"
+    # url = "https://www.allrecipes.com/recipe/217331/goan-pork-vindaloo/"
     recipe = Recipe(url)
     recipe.list_actions() # check actions
     recipe.print_ingredients() # check ingredients
@@ -111,7 +121,13 @@ if __name__ == "__main__":
     # STEP 2: use the new sentences_list and ingredients_list to create a new recipe object
     recipe.transform(new_sentences_list, new_ingredients)
     
+    new_sentences_list_type, new_ingredients_type = transform_recipe_type(recipe, 'healthy')
+    recipe.transform(new_sentences_list_type, new_ingredients_type,modification='healthy')
     
+    # print("modified_ingredients: ",new_ingredients_type)
+    # print("-----------------------------")
+    # print("modified_sentences: ",new_sentences_list_type)
+
     recipe.list_actions()
     recipe.print_ingredients()
     recipe.print_abstract()
