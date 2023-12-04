@@ -105,32 +105,43 @@ if __name__ == "__main__":
     # url = "https://www.allrecipes.com/recipe/217331/goan-pork-vindaloo/"
     url = "https://www.allrecipes.com/recipe/51326/chinese-tea-leaf-eggs/"
     recipe = Recipe(url)
+    # original_recipiens=parse_original_ingredients(recipe.sentences_list,recipe.ingredients_names )
+
+    print("-----------------get all actions---------------------")
     recipe.list_actions() # check actions
+    print()
+    print("---------------------get ingredients-----------------")
     recipe.print_ingredients() # check ingredients
+    print()
+    print("--------------methods and tools-------------")
     recipe.print_abstract() # check methods and tools
+    print()
+
+
+
     
-    print()
-    print()
+
+
     
     # TODO: test transform here
     # STEP 1: generate new sentences_list and ingredients_list
     # two options: call transform_quantity on 1. the entire recipe object (you can access any data you want) or 2. on the sentences_list and ingredients_list
     # (see the input type of both options in quantity_transformation.py)
     # option 1 (use deepcopy!)
-    new_sentences_list, new_ingredients = transform_quantity(recipe, 0.5)
+    # new_sentences_list, new_ingredients = transform_quantity(recipe, 0.5)
     # option 2
     # new_sentences_list, new_ingredients = transform_quantity(recipe.sentences_list, recipe.ingredients, 0.5)
     
     # STEP 2: use the new sentences_list and ingredients_list to create a new recipe object
-    recipe.transform(new_sentences_list, new_ingredients)
+    # recipe.transform(new_sentences_list, new_ingredients)
     
-    new_sentences_list_type, new_ingredients_type = transform_recipe_type(recipe, 'healthy')
-    recipe.transform(new_sentences_list_type, new_ingredients_type,modification='healthy')
-    
+    # new_sentences_list_type, new_ingredients_type = transform_recipe_type(recipe, 'healthy')
+    # recipe.transform(new_sentences_list_type, new_ingredients_type,modification='healthy')
+  
     # print("modified_ingredients: ",new_ingredients_type)
     # print("-----------------------------")
     # print("modified_sentences: ",new_sentences_list_type)
 
-    recipe.list_actions()
-    recipe.print_ingredients()
-    recipe.print_abstract()
+    # recipe.list_actions()
+    # recipe.print_ingredients()
+    # recipe.print_abstract()

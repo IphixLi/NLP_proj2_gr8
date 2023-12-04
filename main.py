@@ -182,6 +182,8 @@ class RecipeStateMachine:
         print("You are in the transform mode. What would you like to do next? All transformations are CUMULATIVE.")
         print(" - Enter 'quant [scale factor]' to scale the recipe by a factor.")
         print(" - Enter 'vegan' to make the recipe vegan.")
+        print(" - Enter 'vegetarian' to make the recipe vegetarian.")
+        print(" - Enter 'italian' to make the recipe italian.")
         print(" - Enter 'healthy' to make the recipe healthy.")
         print(" - Enter 'r' to revert back to the original recipe.")
         print(" - Enter 'h' to see this help message again.")
@@ -213,6 +215,8 @@ class RecipeStateMachine:
         return {
             'quantity': 1.0,
             'vegan': False,
+            'vegetarian':False,
+            'italian':False,
             'healthy': False,
         }
         
@@ -256,6 +260,25 @@ class RecipeStateMachine:
                 else:
                     new_transformations['healthy'] = True
                     print("The recipe will be transformed to healthy after quitting transform mode.")
+            elif user_input == 'vegetarian':
+                if new_transformations['vegetarian']:
+                    if self.current_transformations['vegetarian'] and not use_revert:
+                        print("The recipe is already vegetarian.")
+                    else:
+                        print("The new recipe (after transformation) is already vegetarian.")
+                else:
+                    new_transformations['vegetarian'] = True
+                    print("The recipe will be transformed to vegetarian after quitting transform mode.")
+            elif user_input == 'italian':
+                if new_transformations['italian']:
+                    if self.current_transformations['italian'] and not use_revert:
+                        print("The recipe is already italian.")
+                    else:
+                        print("The new recipe (after transformation) is already italian.")
+                else:
+                    new_transformations['italian'] = True
+                    print("The recipe will be transformed to italian after quitting transform mode.")
+            
             elif user_input == 'r':
                 new_transformations = self.get_original_transformations()
                 use_revert = True
@@ -284,6 +307,10 @@ class RecipeStateMachine:
             modification_list.append(f"{new_transformations['quantity']}x")
         if new_transformations['vegan']:
             modification_list.append("vegan")
+        if new_transformations['vegetarian']:
+            modification_list.append("vegetarian")
+        if new_transformations['italian']:
+            modification_list.append("italian")
         if new_transformations['healthy']:
             modification_list.append("healthy")
         if modification_list:
@@ -299,11 +326,17 @@ class RecipeStateMachine:
         # check if we need to revert back to the original recipe
         print(f"Current recipe: {self.current_transformations}")
         print(f"New recipe:     {new_transformations}")
+
         cur_vegan = self.current_transformations['vegan']
         cur_healthy = self.current_transformations['healthy']
         new_vegan = new_transformations['vegan']
         new_healthy = new_transformations['healthy']
-        if (cur_vegan and not new_vegan) or (cur_healthy and not new_healthy):
+        cur_vegetarian = self.current_transformations['vegetarian']
+        cur_italian = self.current_transformations['italian']
+        new_vegetarian = new_transformations['vegetarian']
+        new_italian = new_transformations['italian']
+
+        if (cur_vegan and not new_vegan) or (cur_healthy and not new_healthy) or (cur_italian and not new_italian) or (cur_vegetarian and not new_vegetarian):
             print("Reverting back to the original recipe...")
             self.recipe = deepcopy(self.original_recipe)
             self.current_transformations = self.get_original_transformations()
@@ -312,6 +345,14 @@ class RecipeStateMachine:
             print("Transforming to vegan...")
             new_sentences_list_type, new_ingredients_type = transform_recipe_type(self.recipe, 'vegan')
             self.recipe.transform(new_sentences_list_type, new_ingredients_type, modification=self.get_modification_str(new_transformations))
+        if new_vegetarian:
+            print("Transforming to vegetarian...")
+            new_sentences_list_type, new_ingredients_type = transform_recipe_type(self.recipe, 'vegetarian')
+            self.recipe.transform(new_sentences_list_type, new_ingredients_type, modification=self.get_modification_str(new_transformations))
+        if new_italian:
+                    print("Transforming to italian...")
+                    new_sentences_list_type, new_ingredients_type = transform_recipe_type(self.recipe, 'italian')
+                    self.recipe.transform(new_sentences_list_type, new_ingredients_type, modification=self.get_modification_str(new_transformations))
         if new_healthy:
             print("Transforming to healthy...")
             new_sentences_list_type, new_ingredients_type = transform_recipe_type(self.recipe, 'healthy')
@@ -596,7 +637,7 @@ class RecipeStateMachine:
         self.state = State.INPUT_URL
         self.original_recipe = None
         self.recipe = None
-        self.current_transformations = {'quantity': 1,'vegan': False, 'healthy': False}
+        self.current_transformations = {'quantity': 1,'vegan': False, 'healthy': False, 'vegetarian':False, 'italian':False}
         self.current_action = 0
     
 

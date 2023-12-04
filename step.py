@@ -235,11 +235,6 @@ class Step:
         method_list = to_method(sentences)
         tools_list = to_tools(sentences)
 
-        # transformed=transform_ingredient_list(ingredients_list,"healthy")
-        # print("ingredient_list: ", ingredients_list)
-        # print("transformed: ",transformed)
-        # print("transformed sentences: ",transform_sentence_list(transformed, ingredients_mappings, sentences,'healthy'))
-
         for i in range(len(sentences)):
             self.actions.append(Action(sentences[i], temperature_value, ingredients_list[i], time_list[i],
                                        method_list[i], tools_list[i]))
