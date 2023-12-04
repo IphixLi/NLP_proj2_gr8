@@ -65,3 +65,7 @@ rasa shell
     - command line interface
     - rasa chat-bot
 
+
+# external resouces
+
+For the database of recipe alternatives, data was sources from from this former project.https://raw.githubusercontent.com/amitadate/EECS-337-NLP-Project-02/master/Final_Submission/transformation_list.py
