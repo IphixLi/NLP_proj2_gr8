@@ -93,6 +93,12 @@ rasa shell
     - healthy (```transformation.py and transformationDB.py```)
         - modify ingredient names, steps and recipe names
         - see external resources below
+    - Italian (```transformation.py and transformationDB.py```)
+        - modify ingredient names, steps and recipe names
+        - see external resources below
+    - vegetarian (```transformation.py and transformationDB.py```)
+        - modify ingredient names, steps and recipe names
+        - see external resources below
     - quantity scaling (```quantity_transformation.py```)
         - change ingredient list by quantities
         - in each sentences, only change numbers if: 1. it’s related to ingredients; 2. no “each” in that sentence 
@@ -114,6 +120,8 @@ rasa shell
               - vegan
               - healthy
               - quantity scaling
+              - Italian
+              - vegetarian
               - revert to original
             - navigate between steps
               - next
@@ -130,7 +138,7 @@ rasa shell
               - resume the current step or back to overview after transformation
 
     - **[Optional]** rasa chat-bot (```rasa-try/*```)
-
+    
         - Both state transitions and user inputs are less restricted
         - Possible input examples for each kinds of intents in ```rasa-try/data/nlu.yml```
         - Assign custom actions to intent in ```rasa-try/data/rules.yml```
@@ -160,13 +168,6 @@ rasa shell
             - Output may vary with CLI due to out-dated code copy (output of CLI is the final version)
 
 # External resouces
-
-For the database of recipe alternatives, data was sources from from this former project.
-
-https://raw.githubusercontent.com/amitadate/EECS-337-NLP-Project-02/master/Final_Submission/transformation_list.py
-
-
-# external resouces
 
 For the database of recipe alternatives, data was sources from from this former project.
 
